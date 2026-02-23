@@ -77,7 +77,10 @@ export function App() {
   const backend: DataBackend = resolveDataBackend(getEnvVar("VITE_DATA_BACKEND"));
   const pushApiBaseUrl = getEnvVar("VITE_PUSH_API_BASE_URL") ?? getEnvVar("VITE_LOCAL_API_BASE_URL") ?? "";
   const adapter = createAdapter(backend);
-  const t = (key: I18nKey, vars?: Record<string, string>) => i18n.t(key, vars);
+  const t = (key: I18nKey, vars?: Record<string, string>) => {
+    locale();
+    return i18n.t(key, vars);
+  };
 
   applyTheme(theme());
 
