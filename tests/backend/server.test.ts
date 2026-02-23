@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { Database } from "bun:sqlite";
 import { ensureSchema } from "../../backend/db";
+import { SqlitePushRepo } from "../../backend/repo/sqlitePushRepo";
 import { SqliteRatingsRepo } from "../../backend/repo/sqliteRatingsRepo";
 import { createHandler } from "../../backend/server";
 
@@ -8,7 +9,8 @@ test("API routes return expected status codes and payloads", async () => {
   const db = new Database(":memory:", { strict: true });
   ensureSchema(db);
   const repo = new SqliteRatingsRepo(db);
-  const handler = createHandler({ repo });
+  const pushRepo = new SqlitePushRepo(db);
+  const handler = createHandler({ repo, pushRepo, pushPublicKey: "test-public-key" });
 
   const health = await handler(new Request("http://localhost/api/health"));
   expect(health.status).toBe(200);
@@ -35,6 +37,10 @@ test("API routes return expected status codes and payloads", async () => {
     }),
   );
   expect(invalid.status).toBe(400);
+
+  const pushKey = await handler(new Request("http://localhost/api/push/public-key"));
+  expect(pushKey.status).toBe(200);
+  expect(await pushKey.json()).toEqual({ publicKey: "test-public-key" });
 
   db.close();
 });

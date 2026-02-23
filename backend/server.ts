@@ -1,12 +1,16 @@
 import { createDatabase } from "./db";
+import { createPushScheduler, readPushConfigFromEnv } from "./push";
+import { SqlitePushRepo } from "./repo/sqlitePushRepo";
 import { SqliteRatingsRepo } from "./repo/sqliteRatingsRepo";
 
 type ServerDeps = {
   repo: SqliteRatingsRepo;
+  pushRepo: SqlitePushRepo;
+  pushPublicKey: string | null;
 };
 
 export function createHandler(deps: ServerDeps): (req: Request) => Promise<Response> {
-  const { repo } = deps;
+  const { repo, pushRepo, pushPublicKey } = deps;
 
   return async (req: Request): Promise<Response> => {
     if (req.method === "OPTIONS") {
@@ -17,6 +21,40 @@ export function createHandler(deps: ServerDeps): (req: Request) => Promise<Respo
 
     if (req.method === "GET" && url.pathname === "/api/health") {
       return withCors(json({ ok: true }));
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/push/public-key") {
+      if (!pushPublicKey) {
+        return withCors(json({ error: "push_not_configured" }, { status: 503 }));
+      }
+      return withCors(json({ publicKey: pushPublicKey }));
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/push/subscriptions") {
+      try {
+        const payload = (await req.json()) as {
+          subscription?: {
+            endpoint?: string;
+            keys?: { p256dh?: string; auth?: string };
+          };
+          locale?: string;
+          timezoneOffsetMinutes?: number;
+          reminderEnabled?: boolean;
+          reminderTime?: string;
+        };
+        pushRepo.upsert({
+          endpoint: payload.subscription?.endpoint ?? "",
+          p256dh: payload.subscription?.keys?.p256dh ?? "",
+          auth: payload.subscription?.keys?.auth ?? "",
+          locale: payload.locale ?? "en",
+          timezoneOffsetMinutes: payload.timezoneOffsetMinutes ?? Number.NaN,
+          reminderEnabled: payload.reminderEnabled ?? false,
+          reminderTime: payload.reminderTime ?? "",
+        });
+        return withCors(new Response(null, { status: 204 }));
+      } catch {
+        return withCors(json({ error: "invalid_push_payload" }, { status: 400 }));
+      }
     }
 
     if (req.method === "POST" && url.pathname === "/api/ratings") {
@@ -83,7 +121,14 @@ function withCors(response: Response): Response {
 if (import.meta.main) {
   const db = createDatabase();
   const repo = new SqliteRatingsRepo(db);
-  const server = createServer({ repo });
+  const pushRepo = new SqlitePushRepo(db);
+  const pushConfig = readPushConfigFromEnv();
+  if (pushConfig) {
+    const scheduler = createPushScheduler({ repo: pushRepo }, pushConfig);
+    void scheduler.tick();
+    scheduler.start();
+  }
+  const server = createServer({ repo, pushRepo, pushPublicKey: pushConfig?.publicKey ?? null });
   // eslint-disable-next-line no-console
   console.log(`Local backend listening on http://localhost:${server.port}`);
 }

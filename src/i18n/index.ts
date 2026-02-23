@@ -25,24 +25,49 @@ export type I18nKey =
   | "status.generatingChart"
   | "status.chartUpdated"
   | "status.localApiUnavailable"
+  | "status.appInstalled"
+  | "status.installAccepted"
+  | "status.installDismissed"
+  | "status.installNotAvailable"
+  | "status.installUseBrowserMenu"
+  | "status.installNeedsHttps"
+  | "status.installIosHint"
+  | "status.reminderSent"
+  | "status.reminderDue"
+  | "status.reminderPermissionNeeded"
+  | "status.reminderPermissionGranted"
+  | "status.reminderPermissionDenied"
+  | "status.reminderNotificationsUnsupported"
+  | "status.pushSetupFailed"
+  | "status.pushSyncFailed"
   | "tabs.ariaLabel"
   | "tabs.entry"
   | "tabs.week"
+  | "tabs.settings"
   | "form.question"
-  | "form.step"
-  | "form.title"
-  | "form.subtitle"
   | "form.save"
-  | "menu.toggle"
-  | "menu.theme"
-  | "menu.account"
   | "chart.title"
   | "chart.ariaLabel"
   | "chart.empty"
   | "locale.label"
   | "theme.toggle"
   | "theme.light"
-  | "theme.dark";
+  | "theme.dark"
+  | "theme.system"
+  | "install.installApp"
+  | "install.installed"
+  | "settings.language"
+  | "settings.theme"
+  | "settings.reminderEnabled"
+  | "settings.reminderTime"
+  | "settings.reminderPermission"
+  | "settings.reminderPermissionAction"
+  | "settings.notificationsDefault"
+  | "settings.notificationsGranted"
+  | "settings.notificationsDenied"
+  | "settings.notificationsUnsupported"
+  | "reminder.notificationTitle"
+  | "reminder.notificationBody";
 
 type I18nDict = Record<I18nKey, string>;
 export type I18nVars = Record<string, string>;
@@ -74,17 +99,27 @@ const I18N: Record<Locale, I18nDict> = {
     "status.generatingChart": "Generowanie wykresu z ostatniego tygodnia...",
     "status.chartUpdated": "Wykres zaktualizowany.",
     "status.localApiUnavailable": "Lokalne API jest niedostępne. Uruchom backend Bun.",
+    "status.appInstalled": "Aplikacja jest już zainstalowana.",
+    "status.installAccepted": "Instalacja rozpoczęta.",
+    "status.installDismissed": "Instalacja anulowana.",
+    "status.installNotAvailable": "Instalacja nie jest dostępna w tej chwili.",
+    "status.installUseBrowserMenu": "Użyj menu przeglądarki i wybierz „Zainstaluj aplikację”.",
+    "status.installNeedsHttps": "Instalacja wymaga HTTPS albo localhost.",
+    "status.installIosHint": "Na iOS użyj Udostępnij, a potem „Do ekranu początkowego”.",
+    "status.reminderSent": "Wysłano przypomnienie o podsumowaniu dnia.",
+    "status.reminderDue": "Czas na podsumowanie dnia.",
+    "status.reminderPermissionNeeded": "Przypomnienie jest gotowe, ale przeglądarka blokuje powiadomienia.",
+    "status.reminderPermissionGranted": "Powiadomienia o przypomnieniach są włączone.",
+    "status.reminderPermissionDenied": "Powiadomienia o przypomnieniach są zablokowane.",
+    "status.reminderNotificationsUnsupported": "Ta przeglądarka nie obsługuje powiadomień systemowych.",
+    "status.pushSetupFailed": "Nie udało się skonfigurować powiadomień push.",
+    "status.pushSyncFailed": "Nie udało się zapisać ustawień przypomnienia na serwerze.",
     "tabs.ariaLabel": "Widoki aplikacji",
     "tabs.entry": "Dodaj ocenę",
     "tabs.week": "Ostatni tydzień",
-    "form.step": "Krok 1 z 1: samoocena",
-    "form.title": "Jak się teraz czujesz?",
-    "form.subtitle": "Przesuń suwak i oceń swój obecny nastrój.",
-    "form.question": "Twoja ocena samopoczucia",
+    "tabs.settings": "Ustawienia",
+    "form.question": "Jak oceniasz swój dzień? 1 - bardzo zły dzień, 10 - najlepszy dzień od dawna",
     "form.save": "Zapisz ocenę",
-    "menu.toggle": "Menu",
-    "menu.theme": "Motyw",
-    "menu.account": "Konto",
     "chart.title": "Oceny z ostatnich 7 dni",
     "chart.ariaLabel": "Wykres ocen z ostatnich 7 dni",
     "chart.empty": "Brak danych z ostatniego tygodnia.",
@@ -92,6 +127,21 @@ const I18N: Record<Locale, I18nDict> = {
     "theme.toggle": "Motyw: {theme}",
     "theme.light": "jasny",
     "theme.dark": "ciemny",
+    "theme.system": "systemowy",
+    "install.installApp": "Zainstaluj aplikację",
+    "install.installed": "Zainstalowano",
+    "settings.language": "Domyślny język",
+    "settings.theme": "Domyślny motyw",
+    "settings.reminderEnabled": "Przypominaj o podsumowaniu dnia",
+    "settings.reminderTime": "Godzina przypomnienia",
+    "settings.reminderPermission": "Powiadomienia przeglądarki",
+    "settings.reminderPermissionAction": "Włącz powiadomienia",
+    "settings.notificationsDefault": "Brak decyzji",
+    "settings.notificationsGranted": "Włączone",
+    "settings.notificationsDenied": "Zablokowane",
+    "settings.notificationsUnsupported": "Nieobsługiwane",
+    "reminder.notificationTitle": "being better",
+    "reminder.notificationBody": "Jak minął Twój dzień? Dodaj ocenę.",
   },
   en: {
     "app.title": "being better",
@@ -116,17 +166,27 @@ const I18N: Record<Locale, I18nDict> = {
     "status.generatingChart": "Generating chart for the last week...",
     "status.chartUpdated": "Chart updated.",
     "status.localApiUnavailable": "Local API is unavailable. Start the Bun backend.",
+    "status.appInstalled": "The app is already installed.",
+    "status.installAccepted": "Installation started.",
+    "status.installDismissed": "Installation was dismissed.",
+    "status.installNotAvailable": "Installation is not available right now.",
+    "status.installUseBrowserMenu": "Use the browser menu and choose Install app.",
+    "status.installNeedsHttps": "Installation requires HTTPS or localhost.",
+    "status.installIosHint": "On iOS, tap Share and then Add to Home Screen.",
+    "status.reminderSent": "Sent a reminder to log today's day.",
+    "status.reminderDue": "It's time to log how your day went.",
+    "status.reminderPermissionNeeded": "Reminder is due, but browser notifications are blocked.",
+    "status.reminderPermissionGranted": "Reminder notifications are enabled.",
+    "status.reminderPermissionDenied": "Reminder notifications are blocked.",
+    "status.reminderNotificationsUnsupported": "This browser does not support system notifications.",
+    "status.pushSetupFailed": "Failed to configure push notifications.",
+    "status.pushSyncFailed": "Failed to sync reminder settings to the server.",
     "tabs.ariaLabel": "App views",
     "tabs.entry": "Add rating",
     "tabs.week": "Last week",
-    "form.step": "Step 1 of 1: self-evaluation",
-    "form.title": "How do you feel right now?",
-    "form.subtitle": "Move the slider and rate your current mood.",
-    "form.question": "Your current feeling",
+    "tabs.settings": "Settings",
+    "form.question": "How do you rate your day? 1 - very bad day, 10 - best day in a long time",
     "form.save": "Save rating",
-    "menu.toggle": "Menu",
-    "menu.theme": "Theme",
-    "menu.account": "Account",
     "chart.title": "Ratings from the last 7 days",
     "chart.ariaLabel": "Ratings chart from the last 7 days",
     "chart.empty": "No data from the last week.",
@@ -134,6 +194,21 @@ const I18N: Record<Locale, I18nDict> = {
     "theme.toggle": "Theme: {theme}",
     "theme.light": "light",
     "theme.dark": "dark",
+    "theme.system": "system",
+    "install.installApp": "Install app",
+    "install.installed": "Installed",
+    "settings.language": "Default language",
+    "settings.theme": "Default theme",
+    "settings.reminderEnabled": "Remind me to log my day",
+    "settings.reminderTime": "Reminder time",
+    "settings.reminderPermission": "Browser notifications",
+    "settings.reminderPermissionAction": "Enable notifications",
+    "settings.notificationsDefault": "Not decided",
+    "settings.notificationsGranted": "Enabled",
+    "settings.notificationsDenied": "Blocked",
+    "settings.notificationsUnsupported": "Unsupported",
+    "reminder.notificationTitle": "being better",
+    "reminder.notificationBody": "How did your day go? Add your rating.",
   },
 };
 

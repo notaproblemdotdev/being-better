@@ -14,9 +14,12 @@ export function AppHeader(props: {
   showSignIn: boolean;
   signInLabel: string;
   signInDisabled: boolean;
+  installLabel: string;
+  installDisabled: boolean;
   onLocaleChange: JSX.EventHandler<HTMLSelectElement, Event>;
   onThemeChange: JSX.EventHandler<HTMLSelectElement, Event>;
   onSignIn: JSX.EventHandler<HTMLButtonElement, MouseEvent>;
+  onInstall: JSX.EventHandler<HTMLButtonElement, MouseEvent>;
 }): JSX.Element {
   const [menuOpen, setMenuOpen] = createSignal(false);
   let menuEl: HTMLDivElement | undefined;
@@ -76,6 +79,9 @@ export function AppHeader(props: {
           <span class="menu-line" />
           <span class="menu-line" />
           <span class="menu-line" />
+        </button>
+        <button id="install-app" class="btn" type="button" disabled={props.installDisabled} onClick={props.onInstall}>
+          {props.installLabel}
         </button>
       </div>
       <Show when={menuOpen()}>

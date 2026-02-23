@@ -4,12 +4,14 @@ import type { JSX } from "solid-js";
 export function Tabs(props: {
   entryDisabled: boolean;
   weekDisabled: boolean;
-  activeTab: "entry" | "week";
+  activeTab: "entry" | "week" | "settings";
   ariaLabel: string;
   entryLabel: string;
   weekLabel: string;
+  settingsLabel: string;
   onEntryClick: JSX.EventHandler<HTMLButtonElement, MouseEvent>;
   onWeekClick: JSX.EventHandler<HTMLButtonElement, MouseEvent>;
+  onSettingsClick: JSX.EventHandler<HTMLButtonElement, MouseEvent>;
 }): JSX.Element {
   return (
     <nav id="tabs" class="tabs" aria-label={props.ariaLabel}>
@@ -30,6 +32,9 @@ export function Tabs(props: {
         onClick={props.onWeekClick}
       >
         {props.weekLabel}
+      </button>
+      <button id="tab-settings" class={`tab${props.activeTab === "settings" ? " tab-active" : ""}`} type="button" onClick={props.onSettingsClick}>
+        {props.settingsLabel}
       </button>
     </nav>
   );

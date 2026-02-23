@@ -1,7 +1,7 @@
 import type { DataBackend } from "../data/createAdapter";
 import { MissingGoogleClientIdError } from "../data/adapters/googleDrive";
 import type { I18nKey } from "../i18n";
-import type { Theme } from "../theme";
+import type { ThemePreference } from "../theme";
 
 export function parseRatingInput(rawValue: string): number | null {
   const rating = Number(rawValue.trim());
@@ -9,6 +9,10 @@ export function parseRatingInput(rawValue: string): number | null {
     return null;
   }
   return rating;
+}
+
+export function shouldRefreshWeekChart(activeTab: "entry" | "week" | "settings"): boolean {
+  return activeTab === "week";
 }
 
 export function resolveSignInLabelKey(isReady: boolean): "auth.connected" | "auth.signIn" {
@@ -27,6 +31,12 @@ export function resolveInitFailureStatus(backend: DataBackend, error: unknown): 
   return { key: "status.googleClientInitFailed", isError: true };
 }
 
-export function toggleTheme(theme: Theme): Theme {
-  return theme === "light" ? "dark" : "light";
+export function nextThemePreference(preference: ThemePreference): ThemePreference {
+  if (preference === "light") {
+    return "dark";
+  }
+  if (preference === "dark") {
+    return "system";
+  }
+  return "light";
 }

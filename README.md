@@ -198,11 +198,60 @@ bun run dev
 - `GET /api/health` -> `{ ok: true }`
 - `POST /api/ratings` body `{ timestamp, rating }` -> `201` or `400`
 - `GET /api/ratings?from=<iso>&to=<iso>` -> `{ items: RatingEntry[] }`
+- `GET /api/push/public-key` -> `{ publicKey }` (if VAPID configured)
+- `POST /api/push/subscriptions` body `{ subscription, locale, timezoneOffsetMinutes, reminderEnabled, reminderTime }` -> `204`
 
-## 9. Tests
+## 9. Background reminder notifications (installed app)
+
+To fire reminder notifications at configured time when app is closed, use Web Push:
+
+1. Generate VAPID keys:
+
+```bash
+bun x web-push generate-vapid-keys
+```
+
+2. Set backend env vars (`.env.local` for local dev):
+
+```bash
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=mailto:you@example.com
+```
+
+3. Set frontend push API base URL:
+
+```bash
+VITE_PUSH_API_BASE_URL=http://localhost:8787
+```
+
+4. Start backend and frontend:
+
+```bash
+bun run dev:backend
+bun run dev
+```
+
+5. In app `Settings` tab:
+   - enable reminder
+   - pick reminder time
+   - click `Enable notifications`
+
+Reminder delivery notes:
+- Works when backend is running and reachable from the installed app.
+- Requires HTTPS in production (or localhost for development).
+- Without push backend, reminders only appear while app is open.
+
+## 10. Tests
 
 Run all tests:
 
 ```bash
 bun test
 ```
+
+## 11. Install app on desktop/mobile (PWA)
+
+- Desktop Chromium/Android: use `Install app` button in the app header (or browser install menu).
+- iOS Safari: use Share -> `Add to Home Screen`.
+- App is installable from production build (`bun run build`) with web app manifest + service worker enabled.

@@ -18,5 +18,16 @@ export function ensureSchema(db: Database): void {
     );
 
     CREATE INDEX IF NOT EXISTS idx_ratings_timestamp ON ratings(timestamp);
+
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      endpoint TEXT PRIMARY KEY,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      locale TEXT NOT NULL,
+      timezone_offset_minutes INTEGER NOT NULL,
+      reminder_enabled INTEGER NOT NULL CHECK (reminder_enabled IN (0, 1)),
+      reminder_time TEXT NOT NULL,
+      last_sent_local_date TEXT
+    );
   `);
 }
