@@ -29,6 +29,9 @@ export type I18nKey =
   | "tabs.entry"
   | "tabs.week"
   | "form.question"
+  | "form.step"
+  | "form.title"
+  | "form.subtitle"
   | "form.save"
   | "chart.title"
   | "chart.ariaLabel"
@@ -71,7 +74,10 @@ const I18N: Record<Locale, I18nDict> = {
     "tabs.ariaLabel": "Widoki aplikacji",
     "tabs.entry": "Dodaj ocenę",
     "tabs.week": "Ostatni tydzień",
-    "form.question": "Jak oceniasz swój dzień? 1 - bardzo zły dzień, 10 - najlepszy dzień od dawna",
+    "form.step": "Krok 1 z 1: samoocena",
+    "form.title": "Jak się teraz czujesz?",
+    "form.subtitle": "Przesuń suwak i oceń swój obecny nastrój.",
+    "form.question": "Twoja ocena samopoczucia",
     "form.save": "Zapisz ocenę",
     "chart.title": "Oceny z ostatnich 7 dni",
     "chart.ariaLabel": "Wykres ocen z ostatnich 7 dni",
@@ -107,7 +113,10 @@ const I18N: Record<Locale, I18nDict> = {
     "tabs.ariaLabel": "App views",
     "tabs.entry": "Add rating",
     "tabs.week": "Last week",
-    "form.question": "How do you rate your day? 1 - very bad day, 10 - best day in a long time",
+    "form.step": "Step 1 of 1: self-evaluation",
+    "form.title": "How do you feel right now?",
+    "form.subtitle": "Move the slider and rate your current mood.",
+    "form.question": "Your current feeling",
     "form.save": "Save rating",
     "chart.title": "Ratings from the last 7 days",
     "chart.ariaLabel": "Ratings chart from the last 7 days",

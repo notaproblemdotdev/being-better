@@ -4,7 +4,6 @@ import {
   parseRatingInput,
   resolveInitFailureStatus,
   resolveSignInLabelKey,
-  shouldRefreshWeekChart,
   toggleTheme,
 } from "../../src/app/logic";
 
@@ -15,11 +14,6 @@ test("parseRatingInput accepts only integer values from 1 to 10", () => {
   expect(parseRatingInput("11")).toBeNull();
   expect(parseRatingInput("3.5")).toBeNull();
   expect(parseRatingInput("bad")).toBeNull();
-});
-
-test("week chart refresh only occurs for week tab", () => {
-  expect(shouldRefreshWeekChart("entry")).toBe(false);
-  expect(shouldRefreshWeekChart("week")).toBe(true);
 });
 
 test("sign in label key follows connection state", () => {

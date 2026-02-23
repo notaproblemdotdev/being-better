@@ -11,10 +11,6 @@ export function parseRatingInput(rawValue: string): number | null {
   return rating;
 }
 
-export function shouldRefreshWeekChart(activeTab: "entry" | "week"): boolean {
-  return activeTab === "week";
-}
-
 export function resolveSignInLabelKey(isReady: boolean): "auth.connected" | "auth.signIn" {
   return isReady ? "auth.connected" : "auth.signIn";
 }
