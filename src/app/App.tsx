@@ -11,11 +11,10 @@ import {
   parseThemePreference,
   persistThemePreference,
   resolveThemeFromPreference,
-  themePreferenceLabelKey,
   type Theme,
   type ThemePreference,
 } from "../theme";
-import { nextThemePreference, parseRatingInput, resolveInitFailureStatus, resolveSignInLabelKey, shouldRefreshWeekChart } from "./logic";
+import { parseRatingInput, resolveInitFailureStatus, resolveSignInLabelKey, shouldRefreshWeekChart } from "./logic";
 import { AppHeader } from "./components/AppHeader";
 import { EntryForm } from "./components/EntryForm";
 import { SettingsView } from "./components/SettingsView";
@@ -63,7 +62,7 @@ export function App() {
   const [isReady, setIsReady] = createSignal(false);
   const [signInEnabled, setSignInEnabled] = createSignal(false);
   const [activeTab, setActiveTab] = createSignal<"entry" | "week" | "settings">("entry");
-  const [ratingValue, setRatingValue] = createSignal("");
+  const [ratingValue, setRatingValue] = createSignal("5");
   const [chartPoints, setChartPoints] = createSignal<RatingPoint[]>([]);
   const [chartRefreshToken, setChartRefreshToken] = createSignal(0);
   const [deferredInstallPrompt, setDeferredInstallPrompt] = createSignal<BeforeInstallPromptEvent | null>(null);
@@ -371,13 +370,15 @@ export function App() {
     await syncPushSettingsIfPossible(reminderEnabled(), reminderTime());
   };
 
-  const handleThemeToggle = async (): Promise<void> => {
-    await syncThemePreference(nextThemePreference(themePreference()));
-  };
-
   const handleThemePreferenceChange = async (event: Event): Promise<void> => {
     const select = event.currentTarget as HTMLSelectElement;
     const nextPreference = parseThemePreference(select.value) ?? "system";
+    await syncThemePreference(nextPreference);
+  };
+
+  const handleThemeChange = async (event: Event): Promise<void> => {
+    const select = event.currentTarget as HTMLSelectElement;
+    const nextPreference = select.value === "dark" ? "dark" : "light";
     await syncThemePreference(nextPreference);
   };
 
@@ -478,7 +479,9 @@ export function App() {
         locale={locale()}
         supportedLocales={SUPPORTED_LOCALES}
         t={t}
-        themeToggleLabel={t("theme.toggle", { theme: t(themePreferenceLabelKey(themePreference())) })}
+        theme={theme()}
+        isConnected={isReady()}
+        showSignIn={!isReady()}
         signInLabel={t(resolveSignInLabelKey(isReady()))}
         signInDisabled={isReady() || !signInEnabled()}
         installLabel={isInstalled() ? t("install.installed") : t("install.installApp")}
@@ -486,8 +489,8 @@ export function App() {
         onLocaleChange={(event) => {
           void handleLocaleChange(event);
         }}
-        onThemeToggle={() => {
-          void handleThemeToggle();
+        onThemeChange={(event) => {
+          void handleThemeChange(event);
         }}
         onSignIn={() => {
           void handleSignIn();
@@ -515,7 +518,9 @@ export function App() {
       />
 
       <EntryForm
-        visible={activeTab() === "entry"}
+        stepLabel={t("form.step")}
+        title={t("form.title")}
+        subtitle={t("form.subtitle")}
         label={t("form.question")}
         saveLabel={t("form.save")}
         value={ratingValue()}

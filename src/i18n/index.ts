@@ -44,6 +44,12 @@ export type I18nKey =
   | "tabs.entry"
   | "tabs.week"
   | "tabs.settings"
+  | "menu.toggle"
+  | "menu.theme"
+  | "menu.account"
+  | "form.step"
+  | "form.title"
+  | "form.subtitle"
   | "form.question"
   | "form.save"
   | "chart.title"
@@ -118,6 +124,12 @@ const I18N: Record<Locale, I18nDict> = {
     "tabs.entry": "Dodaj ocenę",
     "tabs.week": "Ostatni tydzień",
     "tabs.settings": "Ustawienia",
+    "menu.toggle": "Otwórz menu",
+    "menu.theme": "Motyw",
+    "menu.account": "Konto",
+    "form.step": "Krok 1",
+    "form.title": "Jak minął Twój dzień?",
+    "form.subtitle": "Przesuń suwak i zapisz ocenę od 1 do 10.",
     "form.question": "Jak oceniasz swój dzień? 1 - bardzo zły dzień, 10 - najlepszy dzień od dawna",
     "form.save": "Zapisz ocenę",
     "chart.title": "Oceny z ostatnich 7 dni",
@@ -185,6 +197,12 @@ const I18N: Record<Locale, I18nDict> = {
     "tabs.entry": "Add rating",
     "tabs.week": "Last week",
     "tabs.settings": "Settings",
+    "menu.toggle": "Open menu",
+    "menu.theme": "Theme",
+    "menu.account": "Account",
+    "form.step": "Step 1",
+    "form.title": "How was your day?",
+    "form.subtitle": "Move the slider and save a rating from 1 to 10.",
     "form.question": "How do you rate your day? 1 - very bad day, 10 - best day in a long time",
     "form.save": "Save rating",
     "chart.title": "Ratings from the last 7 days",

@@ -63,26 +63,28 @@ export function AppHeader(props: {
     <header class="top">
       <div class="top-main">
         <h1 id="title">{props.t("app.title")}</h1>
-        <button
-          id="menu-toggle"
-          class="btn menu-toggle"
-          type="button"
-          aria-label={props.t("menu.toggle")}
-          aria-haspopup="menu"
-          aria-expanded={menuOpen()}
-          aria-controls="top-menu"
-          ref={menuButtonEl}
-          onClick={() => {
-            setMenuOpen((value) => !value);
-          }}
-        >
-          <span class="menu-line" />
-          <span class="menu-line" />
-          <span class="menu-line" />
-        </button>
-        <button id="install-app" class="btn" type="button" disabled={props.installDisabled} onClick={props.onInstall}>
-          {props.installLabel}
-        </button>
+        <div class="top-actions-right">
+          <button id="install-app" class="btn" type="button" disabled={props.installDisabled} onClick={props.onInstall}>
+            {props.installLabel}
+          </button>
+          <button
+            id="menu-toggle"
+            class="btn menu-toggle"
+            type="button"
+            aria-label={props.t("menu.toggle")}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen()}
+            aria-controls="top-menu"
+            ref={menuButtonEl}
+            onClick={() => {
+              setMenuOpen((value) => !value);
+            }}
+          >
+            <span class="menu-line" />
+            <span class="menu-line" />
+            <span class="menu-line" />
+          </button>
+        </div>
       </div>
       <Show when={menuOpen()}>
         <div

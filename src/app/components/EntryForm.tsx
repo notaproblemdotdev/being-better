@@ -27,12 +27,6 @@ export function EntryForm(props: {
             {props.value}/10
           </output>
         </div>
-
-        <div class="scale-labels" aria-hidden="true">
-          <span>1</span>
-          <span>10</span>
-        </div>
-
         <button id="save-rating" class="btn btn-primary" type="submit">
           {props.saveLabel}
         </button>
