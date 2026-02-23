@@ -1,12 +1,14 @@
 {
-  "name": "illbeing",
+  "name": "being-better",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:backend": "bun backend/server.ts",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "bun test"
   },
   "devDependencies": {
     "typescript": "^5.9.2",
