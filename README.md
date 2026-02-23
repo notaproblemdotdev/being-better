@@ -164,30 +164,21 @@ Fix: click `Zaloguj przez Google` again.
 Frontend now supports pluggable adapters selected by `VITE_DATA_BACKEND`:
 
 - `google` (default): browser-only Google OAuth + Drive/Sheets.
-- `local_api`: frontend calls local Bun backend REST API.
+- `browser`: store ratings in browser storage (no sign-in required).
 
 ### 7.1 Production (GitHub Pages)
 
 Use default `google` mode (or set `VITE_DATA_BACKEND=google`).
 
-### 7.2 Local SQLite mode
+### 7.2 Browser storage mode
 
 1. Set in `.env.local`:
 
 ```bash
-VITE_DATA_BACKEND=local_api
-VITE_LOCAL_API_BASE_URL=http://localhost:8787
-PORT=8787
-SQLITE_PATH=./data/being-better.sqlite
+VITE_DATA_BACKEND=browser
 ```
 
-2. Start backend:
-
-```bash
-bun run dev:backend
-```
-
-3. Start frontend:
+2. Start frontend:
 
 ```bash
 bun run dev
@@ -196,8 +187,6 @@ bun run dev
 ## 8. Local backend API
 
 - `GET /api/health` -> `{ ok: true }`
-- `POST /api/ratings` body `{ timestamp, rating }` -> `201` or `400`
-- `GET /api/ratings?from=<iso>&to=<iso>` -> `{ items: RatingEntry[] }`
 - `GET /api/push/public-key` -> `{ publicKey }` (if VAPID configured)
 - `POST /api/push/subscriptions` body `{ subscription, locale, timezoneOffsetMinutes, reminderEnabled, reminderTime }` -> `204`
 
