@@ -33,6 +33,9 @@ export type I18nKey =
   | "form.title"
   | "form.subtitle"
   | "form.save"
+  | "menu.toggle"
+  | "menu.theme"
+  | "menu.account"
   | "chart.title"
   | "chart.ariaLabel"
   | "chart.empty"
@@ -79,6 +82,9 @@ const I18N: Record<Locale, I18nDict> = {
     "form.subtitle": "Przesuń suwak i oceń swój obecny nastrój.",
     "form.question": "Twoja ocena samopoczucia",
     "form.save": "Zapisz ocenę",
+    "menu.toggle": "Menu",
+    "menu.theme": "Motyw",
+    "menu.account": "Konto",
     "chart.title": "Oceny z ostatnich 7 dni",
     "chart.ariaLabel": "Wykres ocen z ostatnich 7 dni",
     "chart.empty": "Brak danych z ostatniego tygodnia.",
@@ -118,6 +124,9 @@ const I18N: Record<Locale, I18nDict> = {
     "form.subtitle": "Move the slider and rate your current mood.",
     "form.question": "Your current feeling",
     "form.save": "Save rating",
+    "menu.toggle": "Menu",
+    "menu.theme": "Theme",
+    "menu.account": "Account",
     "chart.title": "Ratings from the last 7 days",
     "chart.ariaLabel": "Ratings chart from the last 7 days",
     "chart.empty": "No data from the last week.",

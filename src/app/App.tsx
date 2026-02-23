@@ -1,9 +1,9 @@
 import { createSignal, onMount } from "solid-js";
 import { createAdapter, resolveDataBackend, type DataBackend } from "../data/createAdapter";
 import { createI18n, detectInitialLocale, parseLocale, persistLocale, SUPPORTED_LOCALES, type I18nKey } from "../i18n";
-import { applyTheme, detectInitialTheme, persistTheme, themeLabelKey, type Theme } from "../theme";
+import { applyTheme, detectInitialTheme, persistTheme, type Theme } from "../theme";
 import { getEnvVar } from "../config/env";
-import { parseRatingInput, resolveInitFailureStatus, resolveSignInLabelKey, toggleTheme } from "./logic";
+import { parseRatingInput, resolveInitFailureStatus, resolveSignInLabelKey } from "./logic";
 import { AppHeader } from "./components/AppHeader";
 import { EntryForm } from "./components/EntryForm";
 import { StatusBanner } from "./components/StatusBanner";
@@ -119,8 +119,13 @@ export function App() {
     setLocale(nextLocale);
   };
 
-  const handleThemeToggle = (): void => {
-    const nextTheme: Theme = toggleTheme(theme());
+  const handleThemeChange = (event: Event): void => {
+    const select = event.currentTarget as HTMLSelectElement;
+    const nextTheme: Theme = select.value === "dark" ? "dark" : "light";
+    if (nextTheme === theme()) {
+      return;
+    }
+
     applyTheme(nextTheme);
     persistTheme(nextTheme);
     setTheme(nextTheme);
@@ -132,11 +137,13 @@ export function App() {
         locale={locale()}
         supportedLocales={SUPPORTED_LOCALES}
         t={t}
-        themeToggleLabel={t("theme.toggle", { theme: t(themeLabelKey(theme())) })}
+        theme={theme()}
+        isConnected={isReady()}
+        showSignIn={!isReady() && signInEnabled()}
         signInLabel={t(resolveSignInLabelKey(isReady()))}
         signInDisabled={isReady() || !signInEnabled()}
         onLocaleChange={handleLocaleChange}
-        onThemeToggle={handleThemeToggle}
+        onThemeChange={handleThemeChange}
         onSignIn={() => {
           void handleSignIn();
         }}
