@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-labelledby="title desc">
   <title id="title">being better icon</title>
   <desc id="desc">Rounded square icon with lowercase bb monogram.</desc>
   <defs>
@@ -12,15 +12,15 @@
       <stop offset="1" stop-color="#eaf4ff" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="180" height="180" rx="40" fill="url(#bg)"/>
-  <circle cx="130" cy="32" r="101" fill="url(#shine)"/>
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+  <circle cx="23" cy="6" r="18" fill="url(#shine)"/>
   <text
     x="50%"
     y="56%"
     text-anchor="middle"
     dominant-baseline="middle"
     font-family="Avenir Next, Nunito, Trebuchet MS, Segoe UI, sans-serif"
-    font-size="106"
+    font-size="19"
     font-weight="800"
     letter-spacing="-0.03em"
     fill="#dbe8f2"
