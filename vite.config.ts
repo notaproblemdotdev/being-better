@@ -3,9 +3,23 @@ import solidPlugin from "vite-plugin-solid";
 import { VitePWA } from "vite-plugin-pwa";
 
 const explicitBase = process.env.VITE_BASE_PATH;
+const appUrl = process.env.VITE_APP_URL?.trim();
 const repoName = process.env.GITHUB_REPOSITORY?.split("/")[1];
 
-const base = explicitBase ?? (repoName ? `/${repoName}/` : "/");
+function basePathFromAppUrl(url?: string): string | undefined {
+  if (!url) {
+    return undefined;
+  }
+
+  try {
+    const pathname = new URL(url).pathname;
+    return pathname.endsWith("/") ? pathname : `${pathname}/`;
+  } catch {
+    return undefined;
+  }
+}
+
+const base = explicitBase ?? basePathFromAppUrl(appUrl) ?? (repoName ? `/${repoName}/` : "/");
 
 export default defineConfig({
   base,

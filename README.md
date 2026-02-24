@@ -70,9 +70,11 @@ Note: this app uses GIS token popup flow. You do not manually configure `storage
 This repo's deploy workflow expects a GitHub **variable** (not secret):
 
 1. Repo -> `Settings` -> `Secrets and variables` -> `Actions` -> `Variables`.
-2. Create variable:
+2. Create variables:
    - Name: `VITE_GOOGLE_CLIENT_ID`
    - Value: your Google OAuth client ID
+   - Name: `VITE_APP_URL`
+   - Value: your deployed app URL (for example: `https://notaproblem.dev/gh/being-better`)
 
 ### 2.2 Ensure workflow exists
 
@@ -85,7 +87,7 @@ It does:
 - install deps with Bun
 - build with:
   - `VITE_GOOGLE_CLIENT_ID` from `${{ vars.VITE_GOOGLE_CLIENT_ID }}`
-  - `VITE_BASE_PATH=/<repo-name>/`
+  - `VITE_APP_URL` from `${{ vars.VITE_APP_URL }}` (used to derive Vite base path)
 - deploy `dist/` to `gh-pages` branch
 
 ### 2.3 Enable Pages

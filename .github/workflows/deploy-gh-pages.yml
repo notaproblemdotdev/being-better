@@ -27,7 +27,7 @@ jobs:
       - name: Build
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
-          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_APP_URL: ${{ vars.VITE_APP_URL }}
         run: bun run build
 
       - name: Deploy dist to gh-pages
