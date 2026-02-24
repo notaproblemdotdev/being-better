@@ -135,9 +135,13 @@ export type I18nKey =
   | "theme.system"
   | "install.installApp"
   | "install.installed"
+  | "footer.description"
+  | "footer.github"
   | "settings.language"
   | "settings.theme"
   | "settings.storageLocation"
+  | "settings.openDriveFile"
+  | "settings.loggedAs"
   | "settings.reminderEnabled"
   | "settings.reminderTime"
   | "settings.reminderPermission"
@@ -289,9 +293,13 @@ const I18N: Record<Locale, I18nDict> = {
     "theme.system": "systemowy",
     "install.installApp": "Zainstaluj aplikację",
     "install.installed": "Zainstalowano",
+    "footer.description": "Krótka aplikacja do codziennego check-inu samopoczucia i śledzenia trendów.",
+    "footer.github": "Zobacz na GitHubie",
     "settings.language": "Domyślny język",
     "settings.theme": "Domyślny motyw",
     "settings.storageLocation": "Miejsce zapisu danych",
+    "settings.openDriveFile": "Otwórz plik na Dysku Google",
+    "settings.loggedAs": "Zalogowano jako:",
     "settings.reminderEnabled": "Przypominaj o podsumowaniu dnia",
     "settings.reminderTime": "Godzina przypomnienia",
     "settings.reminderPermission": "Powiadomienia przeglądarki",
@@ -339,7 +347,7 @@ const I18N: Record<Locale, I18nDict> = {
     "status.installUseBrowserMenu": "Use the browser menu and choose Install app.",
     "status.installNeedsHttps": "Installation requires HTTPS or localhost.",
     "status.installIosHint": "On iOS, tap Share and then Add to Home Screen.",
-    "status.reminderSent": "Sent a reminder to log today's day.",
+    "status.reminderSent": "Sent a reminder to record today's moment.",
     "status.reminderDue": "It's time to log how your day went.",
     "status.reminderPermissionNeeded": "Reminder is due, but browser notifications are blocked.",
     "status.reminderPermissionGranted": "Reminder notifications are enabled.",
@@ -350,7 +358,7 @@ const I18N: Record<Locale, I18nDict> = {
     "status.pushSyncFailed": "Failed to sync reminder settings to the server.",
     "status.storageLocationUpdated": "Storage location updated.",
     "tabs.ariaLabel": "App views",
-    "tabs.entry": "Log today",
+    "tabs.entry": "Record moment",
     "tabs.week": "Past week",
     "tabs.settings": "Settings",
     "menu.toggle": "Open menu",
@@ -436,9 +444,13 @@ const I18N: Record<Locale, I18nDict> = {
     "theme.system": "system",
     "install.installApp": "Install as app",
     "install.installed": "Installed",
+    "footer.description": "A lightweight app for daily wellbeing check-ins and trend tracking.",
+    "footer.github": "View on GitHub",
     "settings.language": "Default language",
     "settings.theme": "Default theme",
     "settings.storageLocation": "Data storage location",
+    "settings.openDriveFile": "Open file on Google Drive",
+    "settings.loggedAs": "Logged as:",
     "settings.reminderEnabled": "Remind me to log my day",
     "settings.reminderTime": "Reminder time",
     "settings.reminderPermission": "Browser notifications",

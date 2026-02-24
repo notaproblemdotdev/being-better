@@ -41,7 +41,7 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 };
 
-type AppRoute = "hello" | "log-today" | "past-data" | "settings";
+type AppRoute = "hello" | "record-this-moment" | "past-data" | "settings";
 type IntensityKey = "energy" | "stress" | "anxiety" | "joy";
 
 const BACKEND_COOKIE_NAME = "being_better_data_backend";
@@ -112,11 +112,14 @@ function appPath(pathname: string): string {
 
 function routeFromPathname(pathname: string): AppRoute {
   const normalized = stripBasePath(pathname);
+  if (normalized === "/") {
+    return "hello";
+  }
   if (normalized === "/hello") {
     return "hello";
   }
-  if (normalized === "/log-today") {
-    return "log-today";
+  if (normalized === "/log-today" || normalized === "/record-this-moment") {
+    return "record-this-moment";
   }
   if (normalized === "/past-data") {
     return "past-data";
@@ -129,15 +132,22 @@ function routeFromPathname(pathname: string): AppRoute {
 
 function isKnownPathname(pathname: string): boolean {
   const normalized = stripBasePath(pathname);
-  return normalized === "/hello" || normalized === "/log-today" || normalized === "/past-data" || normalized === "/settings";
+  return (
+    normalized === "/" ||
+    normalized === "/hello" ||
+    normalized === "/log-today" ||
+    normalized === "/record-this-moment" ||
+    normalized === "/past-data" ||
+    normalized === "/settings"
+  );
 }
 
 function pathForRoute(route: AppRoute): string {
   if (route === "hello") {
-    return "/hello";
+    return "/";
   }
-  if (route === "log-today") {
-    return "/log-today";
+  if (route === "record-this-moment") {
+    return "/record-this-moment";
   }
   if (route === "past-data") {
     return "/past-data";
@@ -146,7 +156,7 @@ function pathForRoute(route: AppRoute): string {
 }
 
 function routeToTab(route: AppRoute): "hello" | "entry" | "week" | "settings" {
-  if (route === "log-today") {
+  if (route === "record-this-moment") {
     return "entry";
   }
   if (route === "past-data") {
@@ -235,6 +245,17 @@ export function App() {
   };
 
   const wordCount = createMemo(() => splitWords(wordsInput()).length);
+  const activeGoogleAdapter = createMemo<RatingsStoreAdapter | null>(() => {
+    if (selectedBackend() === "google") {
+      return adapter();
+    }
+    if (selectedBackend() === "indexeddb" && settingsBackendDraft() === "google") {
+      return settingsGoogleAdapter();
+    }
+    return null;
+  });
+  const storageGoogleFileUrl = createMemo(() => activeGoogleAdapter()?.getSourceUrl?.() ?? null);
+  const storageGoogleAccountLabel = createMemo(() => activeGoogleAdapter()?.getAccountLabel?.() ?? null);
   const mergedSuggestedWords = createMemo(() => [...new Set([...SUGGESTED_WORDS, ...personalSuggestedWords()])]);
   const presetTagLabelMap = createMemo<Record<string, string>>(() => ({
     sleep: t("form.contextTag.sleep"),
@@ -696,14 +717,21 @@ export function App() {
   });
 
   createEffect(() => {
+    const normalized = stripBasePath(location.pathname);
+    if (normalized === "/log-today") {
+      navigate(appPath("/record-this-moment"), { replace: true });
+    }
+  });
+
+  createEffect(() => {
     if (!isKnownPathname(location.pathname)) {
-      navigate(appPath("/hello"), { replace: true });
+      navigate(appPath("/"), { replace: true });
     }
   });
 
   createEffect(() => {
     if (activeRoute() === "hello" && selectedBackend() !== null) {
-      navigate(appPath("/log-today"), { replace: true });
+      navigate(appPath("/record-this-moment"), { replace: true });
     }
   });
 
@@ -714,7 +742,7 @@ export function App() {
   });
 
   createEffect(() => {
-    if (activeRoute() === "log-today" && isReady()) {
+    if (activeRoute() === "record-this-moment" && isReady()) {
       void refreshPersonalSuggestions();
     }
   });
@@ -742,7 +770,7 @@ export function App() {
   };
 
   const handleEntryTab = (): void => {
-    navigateToRoute("log-today");
+    navigateToRoute("record-this-moment");
   };
 
   const handleWeekTab = (): void => {
@@ -1070,7 +1098,7 @@ export function App() {
               pageLabel={
                 activeRoute() === "hello"
                   ? "Hello"
-                  : activeRoute() === "log-today"
+                  : activeRoute() === "record-this-moment"
                     ? t("tabs.entry")
                     : activeRoute() === "past-data"
                       ? t("tabs.week")
@@ -1113,7 +1141,7 @@ export function App() {
             </section>
 
             <EntryForm
-              visible={activeRoute() === "log-today"}
+              visible={activeRoute() === "record-this-moment"}
               title={t("form.title")}
               wordsLabel={t("form.words")}
               wordsPlaceholder={t("form.wordsPlaceholder")}
@@ -1215,6 +1243,10 @@ export function App() {
               storageGoogleSignInLabel={t("auth.signIn")}
               showStorageGoogleSignIn={settingsBackendDraft() === "google" && selectedBackend() !== "google"}
               storageGoogleSignInDisabled={!settingsGoogleSignInEnabled()}
+              storageGoogleFileUrl={storageGoogleFileUrl()}
+              storageOpenDriveFileLabel={t("settings.openDriveFile")}
+              storageLoggedAsLabel={t("settings.loggedAs")}
+              storageGoogleAccountLabel={storageGoogleAccountLabel()}
               reminderEnabledLabel={t("settings.reminderEnabled")}
               reminderTimeLabel={t("settings.reminderTime")}
               reminderPermissionLabel={t("settings.reminderPermission")}
@@ -1313,6 +1345,32 @@ export function App() {
           </p>
         </section>
       </Show>
+
+      <footer class="app-footer">
+        <p class="app-footer-copy">{t("footer.description")}</p>
+        <p class="app-footer-by">
+          by{" "}
+          <a class="app-footer-link" href="https://github.com/piotrgredowski" target="_blank" rel="noreferrer">
+            piotrgredowski
+          </a>{" "}
+          /{" "}
+          <a class="app-footer-link" href="https://github.com/notaproblemdotdev" target="_blank" rel="noreferrer">
+            notaproblemdotdev
+          </a>
+        </p>
+        <a
+          class="app-footer-source"
+          href="https://github.com/notaproblemdotdev/being-better"
+          target="_blank"
+          rel="noreferrer"
+          aria-label={t("footer.github")}
+          title={t("footer.github")}
+        >
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+            <path d="M12 .5C5.649.5.5 5.649.5 12c0 5.084 3.292 9.4 7.861 10.923.575.106.785-.25.785-.556 0-.274-.01-1.002-.016-1.967-3.198.695-3.873-1.54-3.873-1.54-.523-1.329-1.276-1.683-1.276-1.683-1.043-.713.08-.698.08-.698 1.153.081 1.76 1.185 1.76 1.185 1.024 1.756 2.688 1.249 3.344.955.104-.742.401-1.249.729-1.536-2.552-.291-5.236-1.276-5.236-5.682 0-1.255.449-2.281 1.185-3.085-.119-.291-.514-1.463.113-3.05 0 0 .966-.31 3.167 1.178a10.94 10.94 0 0 1 2.883-.387c.978.004 1.963.132 2.883.387 2.199-1.488 3.164-1.178 3.164-1.178.629 1.587.234 2.759.115 3.05.738.804 1.184 1.83 1.184 3.085 0 4.417-2.688 5.387-5.248 5.672.412.355.779 1.056.779 2.129 0 1.537-.014 2.777-.014 3.154 0 .309.207.668.79.555C20.21 21.396 23.5 17.082 23.5 12 23.5 5.649 18.351.5 12 .5Z" />
+          </svg>
+        </a>
+      </footer>
 
       <ToastViewport toasts={toasts()} />
     </main>

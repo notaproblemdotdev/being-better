@@ -14,6 +14,10 @@ export function SettingsView(props: {
   storageGoogleSignInLabel: string;
   showStorageGoogleSignIn: boolean;
   storageGoogleSignInDisabled: boolean;
+  storageGoogleFileUrl: string | null;
+  storageOpenDriveFileLabel: string;
+  storageLoggedAsLabel: string;
+  storageGoogleAccountLabel: string | null;
   reminderEnabledLabel: string;
   reminderTimeLabel: string;
   reminderPermissionLabel: string;
@@ -91,6 +95,14 @@ export function SettingsView(props: {
             <button type="button" class="btn setting-action" disabled={props.storageGoogleSignInDisabled} onClick={props.onStorageGoogleSignIn}>
               {props.storageGoogleSignInLabel}
             </button>
+          ) : null}
+          {props.storageGoogleFileUrl ? (
+            <a class="btn setting-action" href={props.storageGoogleFileUrl} target="_blank" rel="noreferrer">
+              {props.storageOpenDriveFileLabel}
+            </a>
+          ) : null}
+          {props.storageGoogleAccountLabel ? (
+            <p class="setting-note">{props.storageLoggedAsLabel} {props.storageGoogleAccountLabel}</p>
           ) : null}
           <p class="status setting-status">{props.storageHelpText}</p>
         </div>

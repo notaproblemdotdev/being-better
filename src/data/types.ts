@@ -24,6 +24,8 @@ export interface RatingsStoreAdapter {
   listCheckIns(range: CheckInsRange): Promise<MoodCheckIn[]>;
   loadSettings?(): Promise<Record<string, string>>;
   saveSettings?(settings: Record<string, string>): Promise<void>;
+  getSourceUrl?(): string | null;
+  getAccountLabel?(): string | null;
   isReady(): boolean;
   getAuthState(): AuthState;
   requestSignIn?(): Promise<void>;

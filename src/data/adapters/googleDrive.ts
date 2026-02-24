@@ -46,6 +46,7 @@ export class GoogleDriveRatingsAdapter implements RatingsStoreAdapter {
   private tokenClient: GoogleTokenClient | null = null;
   private hasGrantedToken = false;
   private currentSpreadsheetId: string | null = null;
+  private currentAccountLabel: string | null = null;
   private authState: AuthState = "initializing";
   private pendingSignIn: {
     resolve: () => void;
@@ -191,6 +192,17 @@ export class GoogleDriveRatingsAdapter implements RatingsStoreAdapter {
     return this.currentSpreadsheetId !== null;
   }
 
+  getSourceUrl(): string | null {
+    if (!this.currentSpreadsheetId) {
+      return null;
+    }
+    return `https://docs.google.com/spreadsheets/d/${this.currentSpreadsheetId}/edit`;
+  }
+
+  getAccountLabel(): string | null {
+    return this.currentAccountLabel;
+  }
+
   getAuthState(): AuthState {
     return this.authState;
   }
@@ -233,6 +245,7 @@ export class GoogleDriveRatingsAdapter implements RatingsStoreAdapter {
       window.gapi?.client.setToken({ access_token: response.access_token });
       this.hasGrantedToken = true;
       this.currentSpreadsheetId = await this.ensureSpreadsheet();
+      this.currentAccountLabel = await fetchSpreadsheetOwnerLabel(this.currentSpreadsheetId);
       this.authState = "connected";
       pending?.resolve();
     } catch (error) {
@@ -259,6 +272,7 @@ export class GoogleDriveRatingsAdapter implements RatingsStoreAdapter {
       window.gapi?.client.setToken({ access_token: session.accessToken });
       this.hasGrantedToken = true;
       this.currentSpreadsheetId = await this.ensureSpreadsheet();
+      this.currentAccountLabel = await fetchSpreadsheetOwnerLabel(this.currentSpreadsheetId);
       this.authState = "connected";
     } catch {
       this.clearAuthSession();
@@ -317,6 +331,8 @@ export class GoogleDriveRatingsAdapter implements RatingsStoreAdapter {
 
   private clearAuthSession(): void {
     deleteCookie(AUTH_COOKIE_NAME);
+    this.currentSpreadsheetId = null;
+    this.currentAccountLabel = null;
   }
 }
 
@@ -342,6 +358,7 @@ declare global {
         drive: {
           files: {
             list: (params: Record<string, unknown>) => Promise<{ result: { files?: Array<{ id?: string; createdTime?: string }> } }>;
+            get: (params: Record<string, unknown>) => Promise<{ result: { owners?: Array<{ emailAddress?: string; displayName?: string }> } }>;
           };
         };
         sheets: {
@@ -424,6 +441,19 @@ async function findSpreadsheetIdByName(name: string): Promise<string | null> {
   }
 
   return files[0]?.id ?? null;
+}
+
+async function fetchSpreadsheetOwnerLabel(fileId: string): Promise<string | null> {
+  try {
+    const response = await window.gapi?.client.drive.files.get({
+      fileId,
+      fields: "owners(emailAddress,displayName)",
+    });
+    const owner = response?.result.owners?.[0];
+    return owner?.emailAddress ?? owner?.displayName ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function ensureHeaders(spreadsheetId: string): Promise<void> {
