@@ -45,6 +45,36 @@ type AppRoute = "record-this-moment" | "past-data" | "settings" | "terms" | "pri
 type IntensityKey = "energy" | "stress" | "anxiety" | "joy";
 
 const BACKEND_COOKIE_NAME = "being_better_data_backend";
+const FEEDBACK_ISSUE_BODY = [
+  "## Quick summary",
+  "What would you like to add, change, or fix?",
+  "",
+  "## Type",
+  "- [ ] Feature idea",
+  "- [ ] Bug report",
+  "- [ ] Improvement",
+  "",
+  "## Why this matters",
+  "What problem are you trying to solve?",
+  "",
+  "## Desired behavior",
+  "What should happen?",
+  "",
+  "## If this is a bug: steps to reproduce",
+  "1.",
+  "2.",
+  "3.",
+  "",
+  "## Context (optional)",
+  "- Language: English / Polish",
+  "- Device:",
+  "- Browser:",
+  "- Data mode: Google / Local",
+  "- Screenshot or screen recording:",
+].join("\n");
+const FEEDBACK_ISSUE_URL = `https://github.com/notaproblemdotdev/being-better/issues/new?title=${encodeURIComponent(
+  "[Idea] ",
+)}&body=${encodeURIComponent(FEEDBACK_ISSUE_BODY)}`;
 const BASE_PATH = (() => {
   const baseUrl = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.BASE_URL?.trim();
   if (!baseUrl || baseUrl === "/") {
@@ -1417,6 +1447,9 @@ export function App() {
           </a>
           <a class="app-footer-link" href={appPath("/privacy.html")}>
             {t("footer.privacy")}
+          </a>
+          <a class="app-footer-link" href={FEEDBACK_ISSUE_URL} target="_blank" rel="noreferrer">
+            {t("footer.feedback")}
           </a>
         </div>
         <p class="app-footer-copy">{t("footer.description")}</p>

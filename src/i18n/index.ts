@@ -138,6 +138,7 @@ export type I18nKey =
   | "footer.description"
   | "footer.terms"
   | "footer.privacy"
+  | "footer.feedback"
   | "footer.github"
   | "legal.lastUpdated"
   | "legal.termsTitle"
@@ -321,6 +322,7 @@ const I18N: Record<Locale, I18nDict> = {
     "footer.description": "Prosta aplikacja do codziennego check-inu samopoczucia i śledzenia trendów.",
     "footer.terms": "Regulamin",
     "footer.privacy": "Polityka prywatności",
+    "footer.feedback": "Pomysł / błąd",
     "footer.github": "Zobacz na GitHubie",
     "legal.lastUpdated": "Ostatnia aktualizacja: 24 lutego 2026",
     "legal.termsTitle": "Regulamin",
@@ -507,6 +509,7 @@ const I18N: Record<Locale, I18nDict> = {
     "footer.description": "A lightweight app for daily wellbeing check-ins and trend tracking.",
     "footer.terms": "Terms of Service",
     "footer.privacy": "Privacy Policy",
+    "footer.feedback": "Feature / bug",
     "footer.github": "View on GitHub",
     "legal.lastUpdated": "Last updated: February 24, 2026",
     "legal.termsTitle": "Terms of Service",
