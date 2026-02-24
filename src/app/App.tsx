@@ -1,10 +1,9 @@
 import { useLocation, useNavigate } from "@solidjs/router";
 import { createEffect, createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
-import { buildLastWeekSeries, type RatingPoint } from "../chart/weekly";
 import { getEnvVar } from "../config/env";
 import { createAdapter, resolveDataBackend, type DataBackend } from "../data/createAdapter";
 import type { RatingsStoreAdapter } from "../data/types";
-import { createI18n, detectInitialLocale, parseLocale, persistLocale, SUPPORTED_LOCALES, toBcp47Locale, type I18nKey, type Locale } from "../i18n";
+import { createI18n, detectInitialLocale, parseLocale, persistLocale, SUPPORTED_LOCALES, type I18nKey, type Locale } from "../i18n";
 import { ensurePushSubscription, isPushSupported, syncPushReminderSettings } from "../push/client";
 import { readCookie, setCookie } from "../session/cookies";
 import { detectInitialReminderSettings, markReminderSent, parseReminderTime, persistReminderSettings, shouldSendDailyReminder } from "../settings";
@@ -17,7 +16,19 @@ import {
   type Theme,
   type ThemePreference,
 } from "../theme";
-import { parseRatingInput, resolveInitFailureStatus, resolveSignInLabelKey, shouldRefreshWeekChart } from "./logic";
+import {
+  buildCheckInInsights,
+  buildWordCloud,
+  getWordCloudWindowRange,
+  parseIntensityInput,
+  PRESET_CONTEXT_TAGS,
+  resolveInitFailureStatus,
+  resolveSignInLabelKey,
+  splitWords,
+  SUGGESTED_WORDS,
+  type CheckInInsights,
+  type CloudWindow,
+} from "./logic";
 import { AppHeader } from "./components/AppHeader";
 import { EntryForm } from "./components/EntryForm";
 import { SettingsView } from "./components/SettingsView";
@@ -29,6 +40,11 @@ type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 };
+
+type AppRoute = "hello" | "log-today" | "past-data" | "settings";
+type IntensityKey = "energy" | "stress" | "anxiety" | "joy";
+
+const BACKEND_COOKIE_NAME = "being_better_data_backend";
 
 function isStandaloneDisplay(): boolean {
   return window.matchMedia("(display-mode: standalone)").matches || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
@@ -50,14 +66,11 @@ function detectNotificationPermissionState(): NotificationPermission | "unsuppor
   return Notification.permission;
 }
 
-const BACKEND_COOKIE_NAME = "being_better_data_backend";
-type AppRoute = "hello" | "log-today" | "past-data" | "settings";
 const SETTINGS_KEY_LOCALE = "locale";
 const SETTINGS_KEY_THEME_PREFERENCE = "theme_preference";
 const SETTINGS_KEY_REMINDER_ENABLED = "reminder_enabled";
 const SETTINGS_KEY_REMINDER_TIME = "reminder_time";
 const SETTINGS_KEY_STORAGE_BACKEND = "storage_backend";
-
 function normalizePathname(pathname: string): string {
   if (pathname.length > 1 && pathname.endsWith("/")) {
     return pathname.slice(0, -1);
@@ -135,9 +148,6 @@ export function App() {
   const [isReady, setIsReady] = createSignal(false);
   const [signInEnabled, setSignInEnabled] = createSignal(false);
   const activeRoute = createMemo<AppRoute>(() => routeFromPathname(location.pathname));
-  const [ratingValue, setRatingValue] = createSignal("5");
-  const [chartPoints, setChartPoints] = createSignal<RatingPoint[]>([]);
-  const [chartRefreshToken, setChartRefreshToken] = createSignal(0);
   const [deferredInstallPrompt, setDeferredInstallPrompt] = createSignal<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = createSignal(false);
   const [reminderEnabled, setReminderEnabled] = createSignal(initialReminderSettings.enabled);
@@ -155,6 +165,30 @@ export function App() {
   const [gateGoogleSignInEnabled, setGateGoogleSignInEnabled] = createSignal(false);
   const [gateGoogleAdapter, setGateGoogleAdapter] = createSignal<RatingsStoreAdapter | null>(null);
   const [adapter, setAdapter] = createSignal<RatingsStoreAdapter | null>(null);
+
+  const [wordsInput, setWordsInput] = createSignal("");
+  const [suggestedWordsUsed, setSuggestedWordsUsed] = createSignal<string[]>([]);
+  const [contextTags, setContextTags] = createSignal<string[]>([]);
+  const [customTagValue, setCustomTagValue] = createSignal("");
+  const [intensity, setIntensity] = createSignal<Record<IntensityKey, number | null>>({ energy: null, stress: null, anxiety: null, joy: null });
+  const [cloudWindow, setCloudWindow] = createSignal<CloudWindow>("week");
+  const [cloudWords, setCloudWords] = createSignal<Array<{ word: string; score: number }>>([]);
+  const [checkInInsights, setCheckInInsights] = createSignal<CheckInInsights>({
+    totalCheckIns: 0,
+    activeDays: 0,
+    currentStreak: 0,
+    intensity: [
+      { key: "energy", average: null, sampleCount: 0 },
+      { key: "stress", average: null, sampleCount: 0 },
+      { key: "anxiety", average: null, sampleCount: 0 },
+      { key: "joy", average: null, sampleCount: 0 },
+    ],
+    dailyVolume: [],
+    topContextTags: [],
+    topSuggestedWords: [],
+  });
+  const [personalSuggestedWords, setPersonalSuggestedWords] = createSignal<string[]>([]);
+
   const toastTimeouts = new Map<number, number>();
   let nextToastId = 1;
   let bootSequence = 0;
@@ -167,6 +201,33 @@ export function App() {
     locale();
     return i18n.t(key, vars);
   };
+
+  const wordCount = createMemo(() => splitWords(wordsInput()).length);
+  const mergedSuggestedWords = createMemo(() => [...new Set([...SUGGESTED_WORDS, ...personalSuggestedWords()])]);
+  const presetTagLabelMap = createMemo<Record<string, string>>(() => ({
+    sleep: t("form.contextTag.sleep"),
+    work: t("form.contextTag.work"),
+    social: t("form.contextTag.social"),
+    health: t("form.contextTag.health"),
+    weather: t("form.contextTag.weather"),
+    cycle: t("form.contextTag.cycle"),
+  }));
+  const suggestedWordLabelMap = createMemo<Record<string, string>>(() => ({
+    calm: t("form.suggestedWord.calm"),
+    hopeful: t("form.suggestedWord.hopeful"),
+    tired: t("form.suggestedWord.tired"),
+    drained: t("form.suggestedWord.drained"),
+    focused: t("form.suggestedWord.focused"),
+    grateful: t("form.suggestedWord.grateful"),
+    overwhelmed: t("form.suggestedWord.overwhelmed"),
+    steady: t("form.suggestedWord.steady"),
+    joyful: t("form.suggestedWord.joyful"),
+    restless: t("form.suggestedWord.restless"),
+    clear: t("form.suggestedWord.clear"),
+    anxious: t("form.suggestedWord.anxious"),
+    excited: t("form.suggestedWord.excited"),
+    happy: t("form.suggestedWord.happy"),
+  }));
 
   applyTheme(theme());
 
@@ -239,7 +300,6 @@ export function App() {
         const nextTheme = resolveThemeFromPreference(nextThemePreference);
         applyTheme(nextTheme);
         setTheme(nextTheme);
-        setChartRefreshToken((value) => value + 1);
       }
 
       const parsedReminderEnabled = parseBooleanSetting(settings[SETTINGS_KEY_REMINDER_ENABLED]);
@@ -252,11 +312,45 @@ export function App() {
         persistReminderSettings({ enabled: nextReminderEnabled, time: nextReminderTime });
         void syncPushSettingsIfPossible(nextReminderEnabled, nextReminderTime);
       }
-
     } catch (error) {
       console.error(error);
     } finally {
       isApplyingRemoteSettings = false;
+    }
+  };
+
+  const refreshWordCloud = async (): Promise<void> => {
+    const currentAdapter = adapter();
+    if (!currentAdapter || !currentAdapter.isReady()) {
+      return;
+    }
+
+    try {
+      const range = getWordCloudWindowRange(cloudWindow(), new Date());
+      const rows = await currentAdapter.listCheckIns(range);
+      setCloudWords(buildWordCloud(rows, locale()));
+      setCheckInInsights(buildCheckInInsights(rows, locale(), new Date()));
+    } catch (error) {
+      console.error(error);
+      setStatus(t("status.cloudLoadFailed"), true);
+    }
+  };
+
+  const refreshPersonalSuggestions = async (): Promise<void> => {
+    const currentAdapter = adapter();
+    if (!currentAdapter || !currentAdapter.isReady()) {
+      return;
+    }
+
+    try {
+      const range = getWordCloudWindowRange("all-time", new Date());
+      const rows = await currentAdapter.listCheckIns(range);
+      const topWords = buildWordCloud(rows, locale())
+        .slice(0, 6)
+        .map((entry) => entry.word);
+      setPersonalSuggestedWords(topWords);
+    } catch {
+      setPersonalSuggestedWords([]);
     }
   };
 
@@ -266,12 +360,6 @@ export function App() {
     persistThemePreference(nextPreference);
     applyTheme(nextTheme);
     setTheme(nextTheme);
-    setChartRefreshToken((value) => value + 1);
-
-    if (shouldRefreshWeekChart(routeToTab(activeRoute()))) {
-      await refreshWeeklyChart();
-    }
-
     await persistSettingsToAdapter();
   };
 
@@ -285,7 +373,7 @@ export function App() {
     setLocale(nextLocale);
 
     if (routeToTab(activeRoute()) === "week") {
-      await refreshWeeklyChart();
+      await refreshWordCloud();
     }
 
     await persistSettingsToAdapter();
@@ -346,45 +434,6 @@ export function App() {
 
     setStatus(t("status.reminderPermissionNeeded"), true);
   };
-
-  async function refreshWeeklyChart(): Promise<void> {
-    const currentAdapter = adapter();
-    if (!currentAdapter || !currentAdapter.isReady()) {
-      setStatus(t("status.signInFirst"), true);
-      return;
-    }
-
-    try {
-      const now = new Date();
-      const toIso = now.toISOString();
-      const from = new Date(now);
-      from.setDate(from.getDate() - 6);
-      from.setHours(0, 0, 0, 0);
-
-      const rows = await currentAdapter.listRatings({
-        fromIso: from.toISOString(),
-        toIso,
-      });
-
-      setChartPoints(buildLastWeekSeries(rows, toBcp47Locale(locale()), now));
-      setChartRefreshToken((value) => value + 1);
-    } catch (error) {
-      console.error(error);
-      setStatus(t("status.chartLoadFailed"), true);
-    }
-  }
-
-  async function generateWeeklyChartOnDemand(): Promise<void> {
-    const currentAdapter = adapter();
-    if (!currentAdapter || !currentAdapter.isReady()) {
-      setStatus(t("status.signInFirst"), true);
-      return;
-    }
-
-    setStatus(t("status.generatingChart"));
-    await refreshWeeklyChart();
-    setStatus(t("status.chartUpdated"));
-  }
 
   async function boot(currentAdapter: RatingsStoreAdapter, backend: DataBackend, sequence: number): Promise<void> {
     const isStale = (): boolean => sequence !== bootSequence || selectedBackend() !== backend || adapter() !== currentAdapter;
@@ -516,7 +565,6 @@ export function App() {
         const nextTheme = resolveThemeFromPreference("system");
         applyTheme(nextTheme);
         setTheme(nextTheme);
-        setChartRefreshToken((value) => value + 1);
       }
     };
 
@@ -627,6 +675,18 @@ export function App() {
     }
   });
 
+  createEffect(() => {
+    if (activeRoute() === "past-data") {
+      void refreshWordCloud();
+    }
+  });
+
+  createEffect(() => {
+    if (activeRoute() === "log-today" && isReady()) {
+      void refreshPersonalSuggestions();
+    }
+  });
+
   const handleSignIn = async (): Promise<void> => {
     const currentAdapter = adapter();
     if (!currentAdapter?.requestSignIn) {
@@ -649,12 +709,6 @@ export function App() {
     navigate(pathForRoute(route));
   };
 
-  createEffect(() => {
-    if (activeRoute() === "past-data") {
-      void generateWeeklyChartOnDemand();
-    }
-  });
-
   const handleEntryTab = (): void => {
     navigateToRoute("log-today");
   };
@@ -667,7 +721,7 @@ export function App() {
     navigateToRoute("settings");
   };
 
-  const handleSubmitRating = async (event: SubmitEvent): Promise<void> => {
+  const handleSubmitCheckIn = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
 
     const currentAdapter = adapter();
@@ -676,29 +730,82 @@ export function App() {
       return;
     }
 
-    const rating = parseRatingInput(ratingValue());
-    if (rating === null) {
-      setStatus(t("status.invalidRating"), true);
+    const words = splitWords(wordsInput());
+    if (words.length === 0) {
+      setStatus(t("status.wordsRequired"), true);
       return;
     }
 
     try {
-      setStatus(t("status.savingRating"));
-      await currentAdapter.appendRating({
+      setStatus(t("status.savingCheckIn"));
+      await currentAdapter.appendCheckIn({
         timestamp: new Date().toISOString(),
-        rating,
+        words,
+        suggestedWordsUsed: suggestedWordsUsed(),
+        intensity: intensity(),
+        contextTags: contextTags(),
       });
 
-      setRatingValue("");
-      setStatus(t("status.ratingSaved"));
+      setWordsInput("");
+      setSuggestedWordsUsed([]);
+      setContextTags([]);
+      setCustomTagValue("");
+      setIntensity({ energy: null, stress: null, anxiety: null, joy: null });
+      setStatus(t("status.checkInSaved"));
 
-      if (shouldRefreshWeekChart(routeToTab(activeRoute()))) {
-        await refreshWeeklyChart();
+      if (routeToTab(activeRoute()) === "week") {
+        await refreshWordCloud();
       }
     } catch (error) {
       console.error(error);
-      setStatus(t("status.ratingSaveFailed"), true);
+      setStatus(t("status.checkInSaveFailed"), true);
     }
+  };
+
+  const handleAddSuggestedWord = (word: string): void => {
+    const currentWords = splitWords(wordsInput());
+    if (currentWords.includes(word)) {
+      return;
+    }
+
+    setWordsInput(currentWords.length === 0 ? word : `${wordsInput().trim()} ${word}`);
+    setSuggestedWordsUsed((current) => (current.includes(word) ? current : [...current, word]));
+  };
+
+  const handleIntensityInput = (key: IntensityKey, value: string): void => {
+    const parsed = parseIntensityInput(value);
+    if (parsed === null) {
+      return;
+    }
+    setIntensity((current) => ({ ...current, [key]: parsed }));
+  };
+
+  const addTag = (rawValue: string): void => {
+    const nextTag = rawValue.trim().toLowerCase();
+    if (!nextTag || contextTags().includes(nextTag)) {
+      return;
+    }
+    setContextTags((current) => [...current, nextTag]);
+  };
+
+  const handleTogglePresetTag = (tag: string): void => {
+    if (contextTags().includes(tag)) {
+      setContextTags((current) => current.filter((item) => item !== tag));
+      return;
+    }
+    setContextTags((current) => [...current, tag]);
+  };
+
+  const handleAddCustomTag = (): void => {
+    addTag(customTagValue());
+    setCustomTagValue("");
+  };
+
+  const handleTimeframeChange = async (event: Event): Promise<void> => {
+    const select = event.currentTarget as HTMLSelectElement;
+    const nextWindow = select.value as CloudWindow;
+    setCloudWindow(nextWindow);
+    await refreshWordCloud();
   };
 
   const handleLocaleChange = async (event: Event): Promise<void> => {
@@ -975,24 +1082,94 @@ export function App() {
 
             <EntryForm
               visible={activeRoute() === "log-today"}
-              label={t("form.question")}
+              title={t("form.title")}
+              wordsLabel={t("form.words")}
+              wordsPlaceholder={t("form.wordsPlaceholder")}
+              wordCountLabel={t("form.wordCount")}
+              suggestedWordsLabel={t("form.suggestedWords")}
+              intensityLabels={{
+                energy: t("form.energy"),
+                stress: t("form.stress"),
+                anxiety: t("form.anxiety"),
+                joy: t("form.joy"),
+              }}
+              contextTagsLabel={t("form.contextTags")}
+              customTagPlaceholder={t("form.customTagPlaceholder")}
+              addTagLabel={t("form.addTag")}
               saveLabel={t("form.save")}
-              value={ratingValue()}
-              onValueInput={(event) => {
-                setRatingValue(event.currentTarget.value);
+              softLimitHint={t("form.wordLimitHint")}
+              wordsInputValue={wordsInput()}
+              wordCount={wordCount()}
+              wordLimit={20}
+              showWordLimitHint={wordCount() > 20}
+              suggestedWords={mergedSuggestedWords().map((word) => ({
+                value: word,
+                label: suggestedWordLabelMap()[word] ?? word,
+              }))}
+              contextTags={contextTags()}
+              presetContextTags={PRESET_CONTEXT_TAGS.map((tag) => ({
+                value: tag,
+                label: presetTagLabelMap()[tag],
+              }))}
+              selectedContextTags={contextTags().map((tag) => ({
+                value: tag,
+                label: presetTagLabelMap()[tag] ?? tag,
+              }))}
+              customTagValue={customTagValue()}
+              intensity={intensity()}
+              onWordsInput={(event) => {
+                setWordsInput(event.currentTarget.value);
+              }}
+              onAddSuggestedWord={handleAddSuggestedWord}
+              onIntensityInput={handleIntensityInput}
+              onTogglePresetTag={handleTogglePresetTag}
+              onCustomTagInput={(event) => {
+                setCustomTagValue(event.currentTarget.value);
+              }}
+              onAddCustomTag={() => {
+                handleAddCustomTag();
+              }}
+              onRemoveTag={(tag) => {
+                setContextTags((current) => current.filter((item) => item !== tag));
               }}
               onSubmit={(event) => {
-                void handleSubmitRating(event);
+                void handleSubmitCheckIn(event);
               }}
             />
 
             <WeekChartCard
               visible={activeRoute() === "past-data"}
-              title={t("chart.title")}
-              ariaLabel={t("chart.ariaLabel")}
-              emptyLabel={t("chart.empty")}
-              points={chartPoints()}
-              refreshToken={chartRefreshToken()}
+              title={t("cloud.title")}
+              emptyLabel={t("cloud.empty")}
+              summaryTitle={t("analytics.summaryTitle")}
+              totalCheckInsLabel={t("analytics.totalCheckIns")}
+              activeDaysLabel={t("analytics.activeDays")}
+              streakLabel={t("analytics.currentStreak")}
+              volumeTitle={t("analytics.volumeTitle")}
+              noVolumeLabel={t("analytics.noVolume")}
+              contextTagsTitle={t("analytics.contextTagsTitle")}
+              suggestedWordsTitle={t("analytics.suggestedWordsTitle")}
+              noTagsLabel={t("analytics.noTags")}
+              noSuggestedWordsLabel={t("analytics.noSuggestedWords")}
+              timeframeLabel={t("cloud.timeframe")}
+              timeframe={cloudWindow()}
+              words={cloudWords()}
+              insights={checkInInsights()}
+              intensityLabels={{
+                energy: t("form.energy"),
+                stress: t("form.stress"),
+                anxiety: t("form.anxiety"),
+                joy: t("form.joy"),
+              }}
+              timeframeOptions={[
+                { value: "today", label: t("cloud.today") },
+                { value: "week", label: t("cloud.week") },
+                { value: "month", label: t("cloud.month") },
+                { value: "all-time", label: t("cloud.allTime") },
+              ]}
+              onTimeframeChange={(event) => {
+                void handleTimeframeChange(event);
+              }}
             />
 
             <SettingsView

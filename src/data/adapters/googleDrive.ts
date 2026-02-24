@@ -1,6 +1,6 @@
 import { deleteCookie, readCookie, setCookie } from "../../session/cookies";
 import { getEnvVar } from "../../config/env";
-import type { AuthState, RatingEntry, RatingsRange, RatingsStoreAdapter } from "../types";
+import type { AuthState, CheckInsRange, MoodCheckIn, RatingsStoreAdapter } from "../types";
 
 type GoogleTokenResponse = {
   access_token: string;
@@ -17,10 +17,20 @@ type StoredAuthSession = {
 };
 
 const GOOGLE_CLIENT_ID = getEnvVar("VITE_GOOGLE_CLIENT_ID") ?? "";
-const SHEET_TITLE = "being better";
+const SHEET_TITLE = "beingbetter";
 const DATA_SHEET_TITLE = "data";
 const SETTINGS_SHEET_TITLE = "settings";
 const AUTH_COOKIE_NAME = "being_better_auth";
+const DATA_HEADERS = [
+  "timestamp",
+  "words",
+  "suggested_words_used",
+  "intensity_energy",
+  "intensity_stress",
+  "intensity_anxiety",
+  "intensity_joy",
+  "context_tags",
+] as const;
 const SCOPES = [
   "https://www.googleapis.com/auth/drive.file",
   "https://www.googleapis.com/auth/spreadsheets",
@@ -76,30 +86,41 @@ export class GoogleDriveRatingsAdapter implements RatingsStoreAdapter {
     });
   }
 
-  async appendRating(entry: RatingEntry): Promise<void> {
+  async appendCheckIn(entry: MoodCheckIn): Promise<void> {
     if (!this.currentSpreadsheetId) {
       throw new Error("Sign in required");
     }
 
     await window.gapi?.client.sheets.spreadsheets.values.append({
       spreadsheetId: this.currentSpreadsheetId,
-      range: `${DATA_SHEET_TITLE}!A:B`,
+      range: `${DATA_SHEET_TITLE}!A:H`,
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
       resource: {
-        values: [[entry.timestamp, String(entry.rating)]],
+        values: [
+          [
+            entry.timestamp,
+            JSON.stringify(entry.words),
+            JSON.stringify(entry.suggestedWordsUsed),
+            entry.intensity.energy === null ? "" : String(entry.intensity.energy),
+            entry.intensity.stress === null ? "" : String(entry.intensity.stress),
+            entry.intensity.anxiety === null ? "" : String(entry.intensity.anxiety),
+            entry.intensity.joy === null ? "" : String(entry.intensity.joy),
+            JSON.stringify(entry.contextTags),
+          ],
+        ],
       },
     });
   }
 
-  async listRatings(range: RatingsRange): Promise<RatingEntry[]> {
+  async listCheckIns(range: CheckInsRange): Promise<MoodCheckIn[]> {
     if (!this.currentSpreadsheetId) {
       throw new Error("Sign in required");
     }
 
     const response = await window.gapi?.client.sheets.spreadsheets.values.get({
       spreadsheetId: this.currentSpreadsheetId,
-      range: `${DATA_SHEET_TITLE}!A2:B`,
+      range: `${DATA_SHEET_TITLE}!A2:H`,
     });
 
     const fromTime = new Date(range.fromIso).getTime();
@@ -107,8 +128,8 @@ export class GoogleDriveRatingsAdapter implements RatingsStoreAdapter {
     const rows = response?.result.values ?? [];
 
     return rows
-      .map((row) => ({ timestamp: row[0], rating: Number(row[1]) }))
-      .filter((row) => Boolean(row.timestamp) && Number.isFinite(row.rating))
+      .map((row) => parseCheckInRow(row))
+      .filter((row): row is MoodCheckIn => row !== null)
       .filter((row) => {
         const rowTime = new Date(row.timestamp).getTime();
         return Number.isFinite(rowTime) && rowTime >= fromTime && rowTime <= toTime;
@@ -406,10 +427,29 @@ async function findSpreadsheetIdByName(name: string): Promise<string | null> {
 }
 
 async function ensureHeaders(spreadsheetId: string): Promise<void> {
-  await Promise.all([
-    ensureSheetHeader(spreadsheetId, DATA_SHEET_TITLE, ["timestamp", "rating"]),
-    ensureSheetHeader(spreadsheetId, SETTINGS_SHEET_TITLE, ["key", "value"]),
-  ]);
+  await Promise.all([ensureDataHeaders(spreadsheetId), ensureSheetHeader(spreadsheetId, SETTINGS_SHEET_TITLE, ["key", "value"])]);
+}
+
+async function ensureDataHeaders(spreadsheetId: string): Promise<void> {
+  const response = await window.gapi?.client.sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${DATA_SHEET_TITLE}!A1:H1`,
+  });
+
+  const row = response?.result.values?.[0] ?? [];
+  const hasHeaders = DATA_HEADERS.every((header, index) => row[index] === header);
+  if (hasHeaders) {
+    return;
+  }
+
+  await window.gapi?.client.sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${DATA_SHEET_TITLE}!A1:H1`,
+    valueInputOption: "RAW",
+    resource: {
+      values: [DATA_HEADERS.slice()],
+    },
+  });
 }
 
 async function ensureRequiredSheets(spreadsheetId: string): Promise<void> {
@@ -465,4 +505,69 @@ async function ensureSheetHeader(spreadsheetId: string, sheetTitle: string, head
 
 function escapeDriveString(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+function parseCheckInRow(row: string[]): MoodCheckIn | null {
+  const timestamp = row[0];
+  const words = parseJsonStringArray(row[1]);
+  const suggestedWordsUsed = parseJsonStringArray(row[2]);
+  const energy = parseNullableIntensity(row[3]);
+  const stress = parseNullableIntensity(row[4]);
+  const anxiety = parseNullableIntensity(row[5]);
+  const joy = parseNullableIntensity(row[6]);
+  const contextTags = parseJsonStringArray(row[7]);
+
+  if (!timestamp || !Number.isFinite(new Date(timestamp).getTime())) {
+    return null;
+  }
+
+  if (!isNullableIntensity(energy) || !isNullableIntensity(stress) || !isNullableIntensity(anxiety) || !isNullableIntensity(joy)) {
+    return null;
+  }
+
+  return {
+    timestamp,
+    words,
+    suggestedWordsUsed,
+    intensity: {
+      energy,
+      stress,
+      anxiety,
+      joy,
+    },
+    contextTags,
+  };
+}
+
+function parseJsonStringArray(raw: string | undefined): string[] {
+  if (!raw) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter((item): item is string => typeof item === "string");
+  } catch {
+    return [];
+  }
+}
+
+function parseNullableIntensity(raw: string | undefined): number | null {
+  if (!raw) {
+    return null;
+  }
+
+  const value = Number(raw);
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+
+  return value;
+}
+
+function isNullableIntensity(value: number | null): boolean {
+  return value === null || (Number.isFinite(value) && value >= 0 && value <= 10);
 }

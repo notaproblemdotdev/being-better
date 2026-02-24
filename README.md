@@ -5,7 +5,7 @@ A static web app (TypeScript -> JavaScript) deployed to GitHub Pages.
 ## What the app does
 
 - Logs user in with Google OAuth.
-- Searches Google Drive root for spreadsheet named `being better`.
+- Searches Google Drive root for spreadsheet named `beingbetter`.
 - Creates the spreadsheet if missing.
 - Saves one record per submission:
   - `timestamp` (ISO datetime)

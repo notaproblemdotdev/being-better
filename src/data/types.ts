@@ -1,9 +1,17 @@
-export type RatingEntry = {
+export type MoodCheckIn = {
   timestamp: string;
-  rating: number;
+  words: string[];
+  suggestedWordsUsed: string[];
+  intensity: {
+    energy: number | null;
+    stress: number | null;
+    anxiety: number | null;
+    joy: number | null;
+  };
+  contextTags: string[];
 };
 
-export type RatingsRange = {
+export type CheckInsRange = {
   fromIso: string;
   toIso: string;
 };
@@ -12,8 +20,8 @@ export type AuthState = "connected" | "needs_login" | "initializing";
 
 export interface RatingsStoreAdapter {
   init(): Promise<void>;
-  appendRating(entry: RatingEntry): Promise<void>;
-  listRatings(range: RatingsRange): Promise<RatingEntry[]>;
+  appendCheckIn(entry: MoodCheckIn): Promise<void>;
+  listCheckIns(range: CheckInsRange): Promise<MoodCheckIn[]>;
   loadSettings?(): Promise<Record<string, string>>;
   saveSettings?(settings: Record<string, string>): Promise<void>;
   isReady(): boolean;

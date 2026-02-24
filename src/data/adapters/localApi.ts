@@ -1,4 +1,4 @@
-import type { AuthState, RatingEntry, RatingsRange, RatingsStoreAdapter } from "../types";
+import type { AuthState, CheckInsRange, MoodCheckIn, RatingsStoreAdapter } from "../types";
 
 type LocalApiAdapterOptions = {
   baseUrl: string;
@@ -23,10 +23,10 @@ export class LocalApiRatingsAdapter implements RatingsStoreAdapter {
     this.authState = "connected";
   }
 
-  async appendRating(entry: RatingEntry): Promise<void> {
+  async appendCheckIn(entry: MoodCheckIn): Promise<void> {
     this.assertReady();
 
-    const response = await fetch(`${this.baseUrl}/api/ratings`, {
+    const response = await fetch(`${this.baseUrl}/api/checkins`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -35,11 +35,11 @@ export class LocalApiRatingsAdapter implements RatingsStoreAdapter {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to append rating: ${response.status}`);
+      throw new Error(`Failed to append check-in: ${response.status}`);
     }
   }
 
-  async listRatings(range: RatingsRange): Promise<RatingEntry[]> {
+  async listCheckIns(range: CheckInsRange): Promise<MoodCheckIn[]> {
     this.assertReady();
 
     const query = new URLSearchParams({
@@ -47,12 +47,12 @@ export class LocalApiRatingsAdapter implements RatingsStoreAdapter {
       to: range.toIso,
     });
 
-    const response = await fetch(`${this.baseUrl}/api/ratings?${query.toString()}`);
+    const response = await fetch(`${this.baseUrl}/api/checkins?${query.toString()}`);
     if (!response.ok) {
-      throw new Error(`Failed to list ratings: ${response.status}`);
+      throw new Error(`Failed to list check-ins: ${response.status}`);
     }
 
-    const payload = (await response.json()) as { items?: RatingEntry[] };
+    const payload = (await response.json()) as { items?: MoodCheckIn[] };
     return payload.items ?? [];
   }
 

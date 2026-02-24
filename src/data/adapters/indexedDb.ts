@@ -1,14 +1,20 @@
-import type { AuthState, RatingEntry, RatingsRange, RatingsStoreAdapter } from "../types";
+import type { AuthState, CheckInsRange, MoodCheckIn, RatingsStoreAdapter } from "../types";
 
 const DB_NAME = "being_better";
-const DB_VERSION = 1;
-const STORE_NAME = "ratings";
+const DB_VERSION = 2;
+const STORE_NAME = "checkins";
 const TIMESTAMP_INDEX = "timestampMs";
 
-type StoredRatingEntry = {
+type StoredMoodCheckIn = {
   id?: number;
   timestamp: string;
-  rating: number;
+  words: string[];
+  suggestedWordsUsed: string[];
+  intensityEnergy: number | null;
+  intensityStress: number | null;
+  intensityAnxiety: number | null;
+  intensityJoy: number | null;
+  contextTags: string[];
   timestampMs: number;
 };
 
@@ -28,7 +34,7 @@ export class IndexedDbRatingsAdapter implements RatingsStoreAdapter {
     this.authState = "connected";
   }
 
-  async appendRating(entry: RatingEntry): Promise<void> {
+  async appendCheckIn(entry: MoodCheckIn): Promise<void> {
     const db = this.assertReady();
     const timestampMs = new Date(entry.timestamp).getTime();
     if (!Number.isFinite(timestampMs)) {
@@ -39,14 +45,20 @@ export class IndexedDbRatingsAdapter implements RatingsStoreAdapter {
     const store = tx.objectStore(STORE_NAME);
     const request = store.add({
       timestamp: entry.timestamp,
-      rating: entry.rating,
+      words: entry.words,
+      suggestedWordsUsed: entry.suggestedWordsUsed,
+      intensityEnergy: entry.intensity.energy,
+      intensityStress: entry.intensity.stress,
+      intensityAnxiety: entry.intensity.anxiety,
+      intensityJoy: entry.intensity.joy,
+      contextTags: entry.contextTags,
       timestampMs,
-    } satisfies StoredRatingEntry);
+    } satisfies StoredMoodCheckIn);
 
     await Promise.all([requestToPromise(request), transactionDone(tx)]);
   }
 
-  async listRatings(range: RatingsRange): Promise<RatingEntry[]> {
+  async listCheckIns(range: CheckInsRange): Promise<MoodCheckIn[]> {
     const db = this.assertReady();
     const fromTime = new Date(range.fromIso).getTime();
     const toTime = new Date(range.toIso).getTime();
@@ -61,10 +73,29 @@ export class IndexedDbRatingsAdapter implements RatingsStoreAdapter {
     await transactionDone(tx);
 
     return rows
-      .filter((row): row is StoredRatingEntry => Boolean(row) && typeof row.timestamp === "string" && Number.isFinite(row.rating))
+      .filter(
+        (row): row is StoredMoodCheckIn =>
+          Boolean(row) &&
+          typeof row.timestamp === "string" &&
+          Array.isArray(row.words) &&
+          Array.isArray(row.suggestedWordsUsed) &&
+          isNullableIntensity(row.intensityEnergy) &&
+          isNullableIntensity(row.intensityStress) &&
+          isNullableIntensity(row.intensityAnxiety) &&
+          isNullableIntensity(row.intensityJoy) &&
+          Array.isArray(row.contextTags),
+      )
       .map((row) => ({
         timestamp: row.timestamp,
-        rating: row.rating,
+        words: row.words.filter((word): word is string => typeof word === "string"),
+        suggestedWordsUsed: row.suggestedWordsUsed.filter((word): word is string => typeof word === "string"),
+        intensity: {
+          energy: row.intensityEnergy,
+          stress: row.intensityStress,
+          anxiety: row.intensityAnxiety,
+          joy: row.intensityJoy,
+        },
+        contextTags: row.contextTags.filter((tag): tag is string => typeof tag === "string"),
       }));
   }
 
@@ -117,4 +148,8 @@ function transactionDone(transaction: IDBTransaction): Promise<void> {
     transaction.onerror = () => reject(transaction.error ?? new Error("IndexedDB transaction failed"));
     transaction.onabort = () => reject(transaction.error ?? new Error("IndexedDB transaction aborted"));
   });
+}
+
+function isNullableIntensity(value: unknown): value is number | null {
+  return value === null || (typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 10);
 }
