@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>better being - Privacy Policy / Polityka prywatności</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --text: #132030;
+        --muted: #5f7082;
+        --line: #d2dde9;
+        --accent: #1d77b8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      main {
+        width: min(900px, calc(100vw - 2rem));
+        margin: 2rem auto;
+      }
+      article {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 1.25rem;
+        display: grid;
+        gap: 1rem;
+      }
+      h1,
+      h2,
+      h3,
+      p,
+      ul {
+        margin: 0;
+      }
+      h1 {
+        font-size: clamp(1.45rem, 3vw, 1.95rem);
+      }
+      h2 {
+        font-size: 1.05rem;
+        margin-top: 0.4rem;
+      }
+      h3 {
+        font-size: 1rem;
+      }
+      p,
+      li {
+        color: var(--muted);
+        line-height: 1.55;
+      }
+      ul {
+        padding-left: 1.1rem;
+        display: grid;
+        gap: 0.45rem;
+      }
+      code {
+        font-family:
+          "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 0.92em;
+      }
+      a {
+        color: var(--accent);
+        text-underline-offset: 0.14em;
+      }
+      .meta,
+      nav,
+      .lang-switch {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .lang-switch {
+        display: flex;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+      }
+      .policy {
+        display: grid;
+        gap: 0.85rem;
+      }
+      hr {
+        border: 0;
+        border-top: 1px solid var(--line);
+        margin: 0.35rem 0;
+      }
+      nav {
+        margin-top: 0.6rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <article>
+        <h1>Privacy Policy / Polityka prywatności</h1>
+        <p class="meta">
+          <strong>Last Updated / Ostatnia aktualizacja:</strong> February 24,
+          2026 / 24 lutego 2026
+        </p>
+
+        <p class="lang-switch">
+          <a href="#pl">Przejdź do wersji polskiej</a>
+          <span>|</span>
+          <a href="#en">Go to English version</a>
+        </p>
+
+        <section id="pl" class="policy" lang="pl">
+          <h2>Polski</h2>
+          <p>
+            Better Being to lekka aplikacja do codziennych check-inów
+            samopoczucia. Ta polityka wyjaśnia, jakie dane są przetwarzane,
+            gdzie są zapisywane i jaką masz nad nimi kontrolę.
+          </p>
+
+          <h3>1. Jakie dane przetwarzamy</h3>
+          <ul>
+            <li>
+              <strong>Treść check-inów:</strong> czas zapisu, słowa nastroju,
+              użyte podpowiedzi, opcjonalne skale intensywności (energia, stres,
+              lęk, radość) oraz tagi kontekstu.
+            </li>
+            <li>
+              <strong>Ustawienia aplikacji:</strong> język, motyw, ustawienia
+              przypomnień i wybrany backend danych.
+            </li>
+            <li>
+              <strong>Dane sesji Google (tryb Google):</strong> token OAuth
+              Google i czas wygaśnięcia są przechowywane w cookie, aby
+              przywrócić sesję do czasu wygaśnięcia tokenu.
+            </li>
+            <li>
+              <strong>Opcjonalne dane push/przypomnień:</strong> jeśli push jest
+              skonfigurowany, aplikacja synchronizuje subskrypcję push (endpoint
+              + klucze), locale, przesunięcie strefy czasowej i konfigurację
+              przypomnienia do skonfigurowanego backendu push.
+            </li>
+          </ul>
+
+          <h3>2. W jakim celu używamy danych</h3>
+          <ul>
+            <li>Zapis i odczyt check-inów.</li>
+            <li>Wyliczanie podsumowań i trendów w aplikacji.</li>
+            <li>
+              Stosowanie wybranych ustawień między sesjami/urządzeniami
+              (zależnie od backendu).
+            </li>
+            <li>Przywracanie sesji i dostarczanie przypomnień.</li>
+          </ul>
+          <p>
+            Better Being nie używa reklam, nie sprzedaje danych osobowych i nie
+            zawiera zewnętrznych narzędzi analitycznych ani śledzących.
+          </p>
+
+          <h3>3. Gdzie dane są przechowywane</h3>
+          <ul>
+            <li>
+              <strong>Tryb Google:</strong> dane są przechowywane na Twoim
+              koncie Google w arkuszu <code>beingbetter</code> (zakładki
+              <code>data</code> i <code>settings</code>). Aplikacja używa
+              zakresów Google <code>drive.file</code> i
+              <code>spreadsheets</code>.
+            </li>
+            <li>
+              <strong>Tryb lokalny:</strong> check-iny są przechowywane w
+              IndexedDB przeglądarki na tym urządzeniu.
+            </li>
+            <li>
+              <strong>Opcjonalny backend push:</strong> jeśli skonfigurowany,
+              zapisuje metadane subskrypcji push potrzebne do wysyłki
+              przypomnień.
+            </li>
+          </ul>
+
+          <h3>4. Cookies i lokalna pamięć przeglądarki</h3>
+          <p>
+            Aplikacja używa pamięci lokalnej/cookies wyłącznie do działania
+            funkcji:
+          </p>
+          <ul>
+            <li>
+              <code>being_better_auth</code> (sesja Google, wygasa z tokenem)
+            </li>
+            <li><code>being_better_data_backend</code> (wybrany backend)</li>
+            <li><code>being_better_locale</code> (język)</li>
+            <li><code>being_better_theme_preference</code> (motyw)</li>
+            <li>
+              <code>being_better_reminder_enabled</code> i
+              <code>being_better_reminder_time</code> (przypomnienia)
+            </li>
+            <li>
+              <code>being_better_last_reminder_date</code> (localStorage, aby
+              uniknąć duplikatów przypomnień)
+            </li>
+          </ul>
+
+          <h3>5. Podmioty trzecie i udostępnianie danych</h3>
+          <p>
+            Nie sprzedajemy danych. Udostępnienie danych występuje tylko, gdy
+            jest to konieczne do działania funkcji:
+          </p>
+          <ul>
+            <li>
+              <strong>Google (tylko w trybie Google):</strong> dane są wysyłane
+              do Google Drive/Sheets w kontekście Twojego konta Google.
+            </li>
+            <li>
+              <strong>Infrastruktura Web Push (tylko gdy włączona):</strong>
+              dostarczenie push wykorzystuje usługi push przeglądarki oraz
+              skonfigurowany backend push.
+            </li>
+            <li>
+              <strong>Wymogi prawne:</strong> dane mogą zostać ujawnione
+              wyłącznie, gdy wymagają tego przepisy prawa.
+            </li>
+          </ul>
+
+          <h3>6. Retencja i usuwanie danych</h3>
+          <ul>
+            <li>
+              <strong>Tryb Google:</strong> dane pozostają w arkuszu, dopóki ich
+              nie usuniesz/edytujesz.
+            </li>
+            <li>
+              <strong>Tryb lokalny:</strong> dane pozostają lokalnie, dopóki nie
+              wyczyścisz danych witryny.
+            </li>
+            <li>
+              <strong>Metadane push:</strong> pozostają w backendzie push do
+              czasu nadpisania/wyłączenia/usunięcia.
+            </li>
+          </ul>
+
+          <h3>7. Twoja kontrola</h3>
+          <ul>
+            <li>Możesz przełączyć backend danych w ustawieniach aplikacji.</li>
+            <li>Możesz usunąć dane z arkusza Google Drive.</li>
+            <li>
+              Możesz wyczyścić cookies/local storage/IndexedDB dla tej witryny.
+            </li>
+            <li>Możesz cofnąć dostęp aplikacji w ustawieniach konta Google.</li>
+            <li>
+              Możesz wyłączyć przypomnienia lub uprawnienie do powiadomień w
+              dowolnym momencie.
+            </li>
+          </ul>
+
+          <h3>8. Prywatność dzieci</h3>
+          <p>
+            Better Being nie jest kierowana do dzieci poniżej 13 roku życia.
+            Jeśli uważasz, że dziecko dodało dane, skontaktuj się z nami.
+          </p>
+
+          <h3>9. Zmiany polityki</h3>
+          <p>
+            Polityka może być aktualizowana, gdy zmieniają się funkcje aplikacji
+            lub sposób przetwarzania danych. Aktualizacje publikujemy na tej
+            stronie z nową datą aktualizacji.
+          </p>
+
+          <h3>10. Kontakt</h3>
+          <ul>
+            <li>
+              <strong>E-mail:</strong>
+              <a href="mailto:self-trade-copious@duck.com"
+                >self-trade-copious@duck.com</a
+              >
+            </li>
+            <li>
+              <strong>GitHub:</strong>
+              <a href="https://github.com/notaproblemdotdev/being-better"
+                >https://github.com/notaproblemdotdev/being-better</a
+              >
+            </li>
+            <li>
+              <strong>Polityka prywatności Google:</strong>
+              <a href="https://policies.google.com/privacy"
+                >https://policies.google.com/privacy</a
+              >
+            </li>
+          </ul>
+        </section>
+
+        <nav>
+          <a href="./terms.html">Regulamin</a> |
+          <a href="./">Powrót do aplikacji</a>
+        </nav>
+
+        <hr />
+
+        <section id="en" class="policy" lang="en">
+          <h2>English</h2>
+          <p>
+            Better Being is a lightweight wellbeing check-in app. This policy
+            explains what data is processed, where it is stored, and how you
+            control it.
+          </p>
+
+          <h3>1. Data We Process</h3>
+          <ul>
+            <li>
+              <strong>Check-in content:</strong> check-in timestamp, mood words,
+              suggested words used, optional intensity values (energy, stress,
+              anxiety, joy), and context tags.
+            </li>
+            <li>
+              <strong>App settings:</strong> language, theme preference,
+              reminder settings, and selected storage backend.
+            </li>
+            <li>
+              <strong>Google auth/session data (Google mode):</strong> a Google
+              OAuth access token and expiry are stored in a cookie to restore
+              your session until the token expires.
+            </li>
+            <li>
+              <strong>Optional reminder/push data:</strong> if push reminders
+              are configured, the app syncs a push subscription (endpoint +
+              keys), locale, timezone offset, and reminder configuration to the
+              configured push backend.
+            </li>
+          </ul>
+
+          <h3>2. How We Use Data</h3>
+          <ul>
+            <li>Save and load your check-ins.</li>
+            <li>Generate summaries and trends inside the app.</li>
+            <li>
+              Apply your chosen settings across sessions/devices (when supported
+              by backend).
+            </li>
+            <li>Restore sign-in state and deliver reminder notifications.</li>
+          </ul>
+          <p>
+            Better Being does not run ads, does not sell personal data, and does
+            not include third-party analytics or tracking SDKs.
+          </p>
+
+          <h3>3. Where Data Is Stored</h3>
+          <ul>
+            <li>
+              <strong>Google mode:</strong> data is stored in your Google
+              account in a Google Sheet named <code>beingbetter</code> (tabs
+              <code>data</code> and <code>settings</code>). The app requests
+              Google scopes <code>drive.file</code> and
+              <code>spreadsheets</code>.
+            </li>
+            <li>
+              <strong>Local mode:</strong> check-ins are stored in your
+              browser's IndexedDB on this device.
+            </li>
+            <li>
+              <strong>Optional push backend:</strong> if configured, push
+              subscription metadata is stored in that backend database to send
+              reminders.
+            </li>
+          </ul>
+
+          <h3>4. Cookies and Local Browser Storage</h3>
+          <p>
+            The app uses first-party browser storage for core functionality:
+          </p>
+          <ul>
+            <li>
+              <code>being_better_auth</code> (Google session token payload,
+              expires with token)
+            </li>
+            <li><code>being_better_data_backend</code> (selected backend)</li>
+            <li><code>being_better_locale</code> (language preference)</li>
+            <li>
+              <code>being_better_theme_preference</code> (theme preference)
+            </li>
+            <li>
+              <code>being_better_reminder_enabled</code> and
+              <code>being_better_reminder_time</code> (reminder settings)
+            </li>
+            <li>
+              <code>being_better_last_reminder_date</code> (localStorage guard
+              to avoid duplicate same-day reminders)
+            </li>
+          </ul>
+
+          <h3>5. Third Parties and Data Sharing</h3>
+          <p>
+            We do not sell your data. Data is shared only as needed to provide
+            chosen functionality:
+          </p>
+          <ul>
+            <li>
+              <strong>Google (only in Google mode):</strong> data is sent to
+              Google Drive/Sheets APIs in your Google account context.
+            </li>
+            <li>
+              <strong>Web Push infrastructure (only if enabled):</strong> push
+              delivery involves browser push services and your configured push
+              backend.
+            </li>
+            <li>
+              <strong>Legal compliance:</strong> we may disclose information
+              only when required by applicable law.
+            </li>
+          </ul>
+
+          <h3>6. Retention and Deletion</h3>
+          <ul>
+            <li>
+              <strong>Google mode:</strong> data remains in your spreadsheet
+              until you edit/delete rows or remove the file.
+            </li>
+            <li>
+              <strong>Local mode:</strong> data remains in your browser storage
+              until you clear site data.
+            </li>
+            <li>
+              <strong>Push metadata:</strong> remains in the configured backend
+              until replaced, disabled, or deleted.
+            </li>
+          </ul>
+
+          <h3>7. Your Control</h3>
+          <ul>
+            <li>Switch storage backend in app settings.</li>
+            <li>Delete spreadsheet data in Google Drive.</li>
+            <li>
+              Clear browser cookies/local storage/IndexedDB for this site.
+            </li>
+            <li>
+              Revoke Google access for this app from your Google account
+              settings.
+            </li>
+            <li>
+              Disable reminders or browser notification permission at any time.
+            </li>
+          </ul>
+
+          <h3>8. Children's Privacy</h3>
+          <p>
+            Better Being is not directed to children under 13. If you believe
+            data has been submitted by a child, contact us.
+          </p>
+
+          <h3>9. Changes to This Policy</h3>
+          <p>
+            We may update this policy when app features or data handling
+            changes. Updates are posted on this page with a revised date.
+          </p>
+
+          <h3>10. Contact</h3>
+          <ul>
+            <li>
+              <strong>Email:</strong>
+              <a href="mailto:self-trade-copious@duck.com"
+                >self-trade-copious@duck.com</a
+              >
+            </li>
+            <li>
+              <strong>GitHub:</strong>
+              <a href="https://github.com/notaproblemdotdev/being-better"
+                >https://github.com/notaproblemdotdev/being-better</a
+              >
+            </li>
+            <li>
+              <strong>Google Privacy Policy:</strong>
+              <a href="https://policies.google.com/privacy"
+                >https://policies.google.com/privacy</a
+              >
+            </li>
+          </ul>
+        </section>
+
+        <nav>
+          <a href="./terms.html">Terms of Service</a> |
+          <a href="./">Back to app</a>
+        </nav>
+      </article>
+    </main>
+  </body>
+</html>
