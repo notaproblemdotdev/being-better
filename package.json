@@ -7,9 +7,10 @@
     "dev": "vite --host 127.0.0.1",
     "dev:backend": "bun backend/server.ts",
     "build": "tsc -b && vite build",
-    "preview": "vite preview --host 127.0.0.1",
+    "preview": "bun run build && wrangler dev",
     "test": "bun test",
-    "icons": "bun scripts/generate-icons.ts"
+    "icons": "bun scripts/generate-icons.ts",
+    "deploy": "bun run build && wrangler deploy"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
